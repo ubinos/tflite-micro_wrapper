@@ -3,13 +3,6 @@ if(INCLUDE__TFLITE_MICRO)
     get_filename_component(_tmp_lib_src_dir "${TFLITE_MICRO__BASE_DIR}" ABSOLUTE)
 
     include_directories(${_tmp_lib_src_dir})
-    include_directories(${_tmp_lib_src_dir}/tensorflow/lite/micro/tools/make/downloads/cmsis)
-    include_directories(${_tmp_lib_src_dir}/tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/DSP/Include)
-    include_directories(${_tmp_lib_src_dir}/tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/NN/Include)
-    include_directories(${_tmp_lib_src_dir}/tensorflow/lite/micro/tools/make/downloads/kissfft)
-    include_directories(${_tmp_lib_src_dir}/tensorflow/lite/micro/tools/make/downloads/flatbuffers/include)
-    include_directories(${_tmp_lib_src_dir}/tensorflow/lite/micro/tools/make/downloads/gemmlowp)
-    include_directories(${_tmp_lib_src_dir}/tensorflow/lite/micro/tools/make/downloads/ruy)
 
     add_definitions("-DCMSIS_NN")
 
@@ -73,13 +66,6 @@ if(INCLUDE__TFLITE_MICRO)
     set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_lib_src_dir}/tensorflow/lite/micro/simple_memory_allocator.cc)
     set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_lib_src_dir}/tensorflow/lite/micro/test_helpers.cc)
     set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_lib_src_dir}/tensorflow/lite/micro/system_setup.cc)
-
-    # set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_lib_src_dir}/tensorflow/lite/micro/arduino/abi.cc)
-    # set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_lib_src_dir}/tensorflow/lite/micro/arduino/debug_log.cc)
-    # set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_lib_src_dir}/tensorflow/lite/micro/arduino/system_setup.cc)
-
-    # set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_lib_src_dir}/tensorflow/lite/micro/benchmarks/keyword_benchmark.cc)
-    # set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_lib_src_dir}/tensorflow/lite/micro/benchmarks/keyword_scrambled_model_data.cc)
 
     set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_lib_src_dir}/tensorflow/lite/micro/kernels/activations.cc)
     set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_lib_src_dir}/tensorflow/lite/micro/kernels/activations_common.cc)
@@ -178,8 +164,16 @@ if(INCLUDE__TFLITE_MICRO)
     set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_lib_src_dir}/tensorflow/lite/micro/memory_planner/greedy_memory_planner.cc)
     set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_lib_src_dir}/tensorflow/lite/micro/memory_planner/linear_memory_planner.cc)
 
-    set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_lib_src_dir}/tensorflow/lite/micro/tools/make/downloads/kissfft/kiss_fft.c)
-    set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_lib_src_dir}/tensorflow/lite/micro/tools/make/downloads/kissfft/tools/kiss_fftr.c)
+    get_filename_component(_tmp_src_dir "${CMAKE_CURRENT_LIST_DIR}" ABSOLUTE)
+
+    include_directories(${_tmp_src_dir})
+    include_directories(${_tmp_src_dir}/tensorflow/lite/micro/tools/make/downloads/kissfft)
+    include_directories(${_tmp_src_dir}/tensorflow/lite/micro/tools/make/downloads/flatbuffers/include)
+    include_directories(${_tmp_src_dir}/tensorflow/lite/micro/tools/make/downloads/gemmlowp)
+    include_directories(${_tmp_src_dir}/tensorflow/lite/micro/tools/make/downloads/ruy)
+
+    set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_src_dir}/tensorflow/lite/micro/tools/make/downloads/kissfft/kiss_fft.c)
+    set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_src_dir}/tensorflow/lite/micro/tools/make/downloads/kissfft/tools/kiss_fftr.c)
 
 endif(INCLUDE__TFLITE_MICRO)
 
