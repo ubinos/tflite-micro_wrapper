@@ -1,3 +1,9 @@
+#
+# Copyright (c) 2021 Sung Ho Park and CSOS
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
 set(INCLUDE__TFLITE_MICRO TRUE)
 set(PROJECT_UBINOS_LIBRARIES ${PROJECT_UBINOS_LIBRARIES} tflite-micro_wrapper)
 
