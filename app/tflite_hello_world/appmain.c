@@ -40,6 +40,7 @@ static void tflite_func(void * arg)
     for (unsigned int i = 0; ; i++)
     {
         loop();
+        task_sleepms(5);
     }
 }
 

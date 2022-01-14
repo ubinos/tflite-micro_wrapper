@@ -17,6 +17,7 @@ limitations under the License.
 
 //#include "Arduino.h"
 #include "constants.h"
+#include "stdio.h"
 
 // The pin of the Arduino's built-in LED
 // int led = LED_BUILTIN;
@@ -43,5 +44,10 @@ void HandleOutput(tflite::ErrorReporter* error_reporter, float x_value,
 //  analogWrite(led, brightness);
 
   // Log the current brightness value for display in the Arduino plotter
-  TF_LITE_REPORT_ERROR(error_reporter, "%d\n", brightness);
+//  TF_LITE_REPORT_ERROR(error_reporter, "%d\n", brightness);
+
+  for (int32_t i = 0; i <= (brightness / 5); i++) {
+    printf(" ");
+  }
+  printf("%d\n", brightness);
 }
