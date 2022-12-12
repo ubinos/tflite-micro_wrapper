@@ -17,8 +17,15 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/micro_log.h"
 
+#include "stdio.h"
+
 void HandleOutput(float x_value, float y_value) {
   // Log the current X and Y values
-  MicroPrintf("x_value: %f, y_value: %f\n", static_cast<double>(x_value),
-              static_cast<double>(y_value));
+  // MicroPrintf("x_value: %f, y_value: %f\n", static_cast<double>(x_value),
+  //             static_cast<double>(y_value));
+
+  for (int32_t i = 0; i <= ((y_value + 1.5) * 20); i++) {
+    printf(" ");
+  }
+  printf("%f\n", static_cast<double>(y_value));
 }
