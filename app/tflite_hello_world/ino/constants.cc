@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/examples/hello_world/constants.h"
+#include "constants.h"
 
-// This is a small number so that it's easy to read the logs
-const int kInferencesPerCycle = 20;
+// This is tuned so that a full cycle takes ~4 seconds on an Arduino MKRZERO.
+const int kInferencesPerCycle = 100;

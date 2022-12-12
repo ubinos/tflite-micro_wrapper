@@ -13,11 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/examples/hello_world/output_handler.h"
+#include "stdio.h"
+
+#include "output_handler.h"
 
 #include "tensorflow/lite/micro/micro_log.h"
-
-#include "stdio.h"
 
 void HandleOutput(float x_value, float y_value) {
   // Log the current X and Y values
