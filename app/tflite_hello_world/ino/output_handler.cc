@@ -13,41 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "output_handler.h"
+#include "tensorflow/lite/micro/examples/hello_world/output_handler.h"
 
-//#include "Arduino.h"
-#include "constants.h"
-#include "stdio.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
-// The pin of the Arduino's built-in LED
-// int led = LED_BUILTIN;
-
-// Track whether the function has run at least once
-bool initialized = false;
-
-// Animates a dot across the screen to represent the current x and y values
-void HandleOutput(tflite::ErrorReporter* error_reporter, float x_value,
-                  float y_value) {
-  // Do this only once
-  if (!initialized) {
-    // Set the LED pin to output
-//    pinMode(led, OUTPUT);
-    initialized = true;
-  }
-
-  // Calculate the brightness of the LED such that y=-1 is fully off
-  // and y=1 is fully on. The LED's brightness can range from 0-255.
-  int brightness = (int)(127.5f * (y_value + 1));
-
-  // Set the brightness of the LED. If the specified pin does not support PWM,
-  // this will result in the LED being on when y > 127, off otherwise.
-//  analogWrite(led, brightness);
-
-  // Log the current brightness value for display in the Arduino plotter
-//  TF_LITE_REPORT_ERROR(error_reporter, "%d\n", brightness);
-
-  for (int32_t i = 0; i <= (brightness / 5); i++) {
-    printf(" ");
-  }
-  printf("%d\n", brightness);
+void HandleOutput(float x_value, float y_value) {
+  // Log the current X and Y values
+  MicroPrintf("x_value: %f, y_value: %f\n", static_cast<double>(x_value),
+              static_cast<double>(y_value));
 }
