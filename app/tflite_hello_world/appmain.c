@@ -17,6 +17,7 @@ static void tflite_func(void * arg);
 
 int appmain(int argc, char * argv[])
 {
+#if defined(UBINOS_PRESENT)
     int r;
     (void) r;
 
@@ -24,6 +25,9 @@ int appmain(int argc, char * argv[])
     ubi_assert(r == 0);
 
     ubik_comp_start();
+#else
+    tflite_func(NULL);
+#endif /* defined(UBINOS_PRESENT) */
 
     return 0;
 }
@@ -40,7 +44,9 @@ static void tflite_func(void * arg)
     for (unsigned int i = 0; ; i++)
     {
         loop();
+#if defined(UBINOS_PRESENT)
         task_sleepms(5);
+#endif /* defined(UBINOS_PRESENT) */
     }
 }
 

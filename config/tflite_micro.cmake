@@ -12,3 +12,9 @@ set_cache_default(TFLITE_MICRO__KISSFFT_BASE_DIR "${PROJECT_LIBRARY_DIR}/kissfft
 set_cache_default(TFLITE_MICRO__FLATBUFFERS_BASE_DIR "${PROJECT_LIBRARY_DIR}/flatbuffers" STRING "flatbuffers project base dir")
 set_cache_default(TFLITE_MICRO__GEMMLOWP_BASE_DIR "${PROJECT_LIBRARY_DIR}/gemmlowp" STRING "gemmlowp project base dir")
 set_cache_default(TFLITE_MICRO__RUY_BASE_DIR "${PROJECT_LIBRARY_DIR}/ruy" STRING "ruy project base dir")
+
+set_cache_default(TFLITE_MICRO__INCLUDE_CMSIS_NN TRUE BOOL "Include ARM CMSIS NN")
+
+set_cache_default(FLATBUFFERS_LOCALE_INDEPENDENT FALSE BOOL "FlatBuffers locale independent")
+
+add_definitions(-DFLATBUFFERS_LOCALE_INDEPENDENT=$<BOOL:${FLATBUFFERS_LOCALE_INDEPENDENT}>)
