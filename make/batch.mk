@@ -58,6 +58,21 @@
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo ""
 	@echo ""
+	make -f makefile.mk $@ CONFIG_DIR=../app CONFIG_NAME=tflite_micro_memory_arena_threshold_test_nrf52840dk_baremetal
+	@echo ""
+	@echo ""
+
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+	@echo ""
+	@echo ""
+	make -f makefile.mk $@ CONFIG_DIR=../app CONFIG_NAME=tflite_micro_memory_helpers_test_nrf52840dk_baremetal
+	@echo ""
+	@echo ""
+
+
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+	@echo ""
+	@echo ""
 	make -f makefile.mk $@ CONFIG_DIR=../app CONFIG_NAME=tflite_hello_world_nrf52dk
 	@echo ""
 	@echo ""
@@ -68,6 +83,7 @@
 	make -f makefile.mk $@ CONFIG_DIR=../app CONFIG_NAME=tflite_hello_world_nucleof207zg
 	@echo ""
 	@echo ""
+
 
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo ""
