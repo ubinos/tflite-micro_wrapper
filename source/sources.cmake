@@ -105,9 +105,12 @@ if(INCLUDE__TFLITE_MICRO)
     list(FILTER _tmp_sources EXCLUDE REGEX "_benchmark_8bit.cc$")
     set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_sources})
 
-    # get_filename_component(_tmp_src_dir "${CMAKE_CURRENT_LIST_DIR}" ABSOLUTE)
-    # include_directories(${_tmp_src_dir}/tensorflow/lite/micro/tools/make/downloads/gemmlowp)
-    # include_directories(${_tmp_src_dir}/tensorflow/lite/micro/tools/make/downloads/ruy)
+    get_filename_component(_tmp_src_dir "${CMAKE_CURRENT_LIST_DIR}" ABSOLUTE)
+    include_directories(${_tmp_src_dir})
+    file(GLOB_RECURSE _tmp_sources
+        "${_tmp_src_dir}/*.c"
+        "${_tmp_src_dir}/*.cc")
+    set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_sources})
 
     include_directories("${TFLITE_MICRO__KISSFFT_BASE_DIR}")
     include_directories("${TFLITE_MICRO__FLATBUFFERS_BASE_DIR}/include")

@@ -28,15 +28,5 @@ set(PROJECT_APP_SOURCES ${PROJECT_APP_SOURCES} ${_tmp_source_dir}/testing/test_c
 
 set(PROJECT_LIBRARIES ${PROJECT_LIBRARIES} pthread)
 
-get_filename_component(_tmp_source_dir "${CMAKE_CURRENT_LIST_DIR}/${APP__NAME}" ABSOLUTE)
-
-include_directories(${_tmp_source_dir})
-
-file(GLOB_RECURSE _tmp_sources
-    "${_tmp_source_dir}/*.c"
-    "${_tmp_source_dir}/*.cpp"
-    "${_tmp_source_dir}/*.cc"
-    "${_tmp_source_dir}/*.S")
-
-set(PROJECT_APP_SOURCES ${PROJECT_APP_SOURCES} ${_tmp_sources})
-
+add_definitions("-DTF_LITE_STATIC_MEMORY")
+add_definitions("-DTF_LITE_MCU_DEBUG_LOG")
