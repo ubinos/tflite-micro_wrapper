@@ -20,7 +20,7 @@ include(${PROJECT_LIBRARY_DIR}/tflite-micro_wrapper/config/tflite_micro.cmake)
 set(INCLUDE__APP TRUE)
 set(APP__NAME "tflite_hello_world_test")
 
-get_filename_component(_tmp_source_dir "${CMAKE_CURRENT_LIST_DIR}/tflite_hello_world/ino" ABSOLUTE)
+get_filename_component(_tmp_source_dir "${PROJECT_LIBRARY_DIR}/tflite-micro_wrapper/app/tflite_hello_world/ino" ABSOLUTE)
 
 include_directories(${_tmp_source_dir})
 
