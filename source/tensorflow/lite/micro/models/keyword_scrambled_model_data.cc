@@ -1,4 +1,4 @@
-#include "keyword_scrambled_model_data.h"
+#include "tensorflow/lite/micro/models/keyword_scrambled_model_data.h"
 
 // xxd -i models/keyword_scrambled.tflite > keyword_scrambled_model_data.cc
 
