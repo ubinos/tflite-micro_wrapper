@@ -5,6 +5,10 @@
 #include "tensorflow/lite/micro/compatibility.h"
 
 namespace tflite {
+    /**
+ * Utility class used to log allocations of a UbiArenaBufferAllocator.
+ * Should only be used in debug/evaluation settings or unit tests to evaluate allocation usage.
+ */
     class RecordingUbiArenaBufferAllocator : public tflite::UbiArenaBufferAllocator {
 
     private:
