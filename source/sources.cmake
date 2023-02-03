@@ -105,6 +105,9 @@ if(INCLUDE__TFLITE_MICRO)
     list(FILTER _tmp_sources EXCLUDE REGEX "_benchmark_8bit.cc$")
     set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_sources})
 
+    get_filename_component(_tmp_lib_src_dir "${TFLITE_MICRO__BASE_DIR}/tensorflow/lite/micro/testing" ABSOLUTE)
+    set(PROJECT_SOURCES ${PROJECT_SOURCES} ${_tmp_lib_src_dir}/test_conv_model.cc)
+
     get_filename_component(_tmp_src_dir "${CMAKE_CURRENT_LIST_DIR}" ABSOLUTE)
     include_directories(${_tmp_src_dir})
     file(GLOB_RECURSE _tmp_sources

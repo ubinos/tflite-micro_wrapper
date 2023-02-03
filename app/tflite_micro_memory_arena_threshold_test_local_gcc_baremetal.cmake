@@ -24,7 +24,6 @@ set(APP__NAME "tflite_micro_memory_arena_threshold_test")
 get_filename_component(_tmp_source_dir "${TFLITE_MICRO__BASE_DIR}/tensorflow/lite/micro" ABSOLUTE)
 
 set(PROJECT_APP_SOURCES ${PROJECT_APP_SOURCES} ${_tmp_source_dir}/memory_arena_threshold_test.cc)
-set(PROJECT_APP_SOURCES ${PROJECT_APP_SOURCES} ${_tmp_source_dir}/testing/test_conv_model.cc)
 
 set(PROJECT_LIBRARIES ${PROJECT_LIBRARIES} pthread)
 
