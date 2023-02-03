@@ -8,10 +8,7 @@
 namespace tflite {
     class UbiMicroAllocator : public tflite::MicroAllocator {
 
-
     public:
-        TF_LITE_REMOVE_VIRTUAL_DELETE
-
         /**
          * Creates a MicroAllocator instance using the provided SingleArenaBufferAllocator instance and the MemoryPlanner.
          * This allocator instance will use the SingleArenaBufferAllocator instance to manage allocations internally.
@@ -26,6 +23,8 @@ namespace tflite {
 
     protected:
         UbiMicroAllocator(IPersistentBufferAllocator* persistent_buffer_allocator, INonPersistentBufferAllocator* non_persistent_buffer_allocator, MicroMemoryPlanner* memory_planner);
+
+        TF_LITE_REMOVE_VIRTUAL_DELETE
     };
 }
 

@@ -8,11 +8,10 @@
 namespace tflite {
     class UbiMicroInterpreter : public tflite::MicroInterpreter {
 
-
     public:
-        TF_LITE_REMOVE_VIRTUAL_DELETE
-
         UbiMicroInterpreter(const Model* model, const MicroOpResolver& op_resolver, tflite::UbiMicroAllocator* allocator, MicroResourceVariables* resource_variables = nullptr, MicroProfilerInterface* profiler = nullptr);
+
+        TF_LITE_REMOVE_VIRTUAL_DELETE
     };
 }
 
