@@ -3,6 +3,8 @@
 
 #include <new>
 
+namespace tflite {
+
 tflite::RecordingUbiArenaBufferAllocator::RecordingUbiArenaBufferAllocator(uint8_t* buffer_head, size_t buffer_size)
     : UbiArenaBufferAllocator(buffer_head, buffer_size),
       requested_head_bytes_(0),
@@ -58,3 +60,5 @@ uint8_t* tflite::RecordingUbiArenaBufferAllocator::AllocatePersistentBuffer(size
   }
   return result;
 }
+
+}  // namespace tflite

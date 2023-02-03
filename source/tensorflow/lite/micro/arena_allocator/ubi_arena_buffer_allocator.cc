@@ -11,6 +11,8 @@
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
+namespace tflite {
+
 tflite::UbiArenaBufferAllocator::UbiArenaBufferAllocator(uint8_t* buffer_head, uint8_t* buffer_tail)
     : buffer_head_(buffer_head),
       buffer_tail_(buffer_tail),
@@ -171,3 +173,5 @@ uint8_t* tflite::UbiArenaBufferAllocator::tail() const {
 size_t tflite::UbiArenaBufferAllocator::GetBufferSize() const {
     return buffer_tail_ - buffer_head_;
 }
+
+}  // namespace tflite

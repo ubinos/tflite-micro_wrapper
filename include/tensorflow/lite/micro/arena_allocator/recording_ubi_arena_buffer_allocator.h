@@ -25,6 +25,8 @@ namespace tflite {
          */
         virtual ~RecordingUbiArenaBufferAllocator() override;
 
+        TF_LITE_REMOVE_VIRTUAL_DELETE
+
         /**
          * Creates a new RecordingSingleArenaBufferAllocaton from a given buffer head and size.
          */

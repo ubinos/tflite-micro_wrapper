@@ -9,7 +9,7 @@
 #include "tensorflow/lite/micro/compatibility.h"
 
 namespace tflite {
-    class UbiArenaBufferAllocator : public tflite::IPersistentBufferAllocator, tflite::INonPersistentBufferAllocator {
+    class UbiArenaBufferAllocator : public tflite::IPersistentBufferAllocator, public tflite::INonPersistentBufferAllocator {
 
     private:
         uint8_t* buffer_head_;
