@@ -18,6 +18,12 @@ namespace tflite {
          */
         static UbiMicroAllocator* Create(UbiArenaBufferAllocator* memory_allocator, MicroMemoryPlanner* memory_planner);
 
+        static UbiMicroAllocator* Create(UbiArenaBufferAllocator* memory_allocator);
+
+        static UbiMicroAllocator* Create(uint8_t* tensor_arena, size_t arena_size);
+
+        static UbiMicroAllocator* Create(uint8_t* tensor_arena, size_t arena_size, MicroMemoryPlanner* memory_planner);
+
     protected:
         UbiMicroAllocator(IPersistentBufferAllocator* persistent_buffer_allocator, INonPersistentBufferAllocator* non_persistent_buffer_allocator, MicroMemoryPlanner* memory_planner);
     };
