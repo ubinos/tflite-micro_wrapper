@@ -21,6 +21,11 @@ namespace tflite {
 
         static UbiMicroAllocator* Create(uint8_t* tensor_arena, size_t arena_size, MicroMemoryPlanner* memory_planner);
 
+        /**
+         * Returns the fixed amount of memory overhead of UbiMicroAllocator.
+         */
+        static size_t GetDefaultTailUsage(bool is_memory_planner_given);
+
     protected:
         UbiMicroAllocator(IPersistentBufferAllocator* persistent_buffer_allocator, INonPersistentBufferAllocator* non_persistent_buffer_allocator, MicroMemoryPlanner* memory_planner);
 

@@ -1,14 +1,25 @@
 #include "tensorflow/lite/micro/ubi_micro_allocator.h"
 
+#include <cstddef>
+#include <cstdint>
+
+#include "flatbuffers/flatbuffers.h"  // from @flatbuffers
+#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/micro/arena_allocator/ubi_arena_buffer_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/non_persistent_arena_buffer_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/persistent_arena_buffer_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
+#include "tensorflow/lite/micro/memory_planner/micro_memory_planner.h"
 #include "tensorflow/lite/micro/micro_allocation_info.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
-#include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_log.h"
+#include "tensorflow/lite/micro/tflite_bridge/flatbuffer_conversions_bridge.h"
+#include "tensorflow/lite/schema/schema_generated.h"
+#include "tensorflow/lite/schema/schema_utils.h"
 
 namespace tflite {
 
@@ -65,6 +76,17 @@ UbiMicroAllocator* tflite::UbiMicroAllocator::Create(uint8_t* tensor_arena, size
       UbiArenaBufferAllocator::Create(aligned_arena, aligned_arena_size);
 
   return Create(memory_allocator, memory_planner);
+}
+
+size_t UbiMicroAllocator::GetDefaultTailUsage(bool is_memory_planner_given) {
+  size_t total_size = AlignSizeUp<UbiArenaBufferAllocator>() +
+                      AlignSizeUp<UbiMicroAllocator>() +
+                      AlignSizeUp<MicroBuiltinDataAllocator>() +
+                      AlignSizeUp<SubgraphAllocations>();
+  if (!is_memory_planner_given) {
+    total_size += AlignSizeUp<GreedyMemoryPlanner>();
+  }
+  return total_size;
 }
 
 tflite::UbiMicroAllocator::UbiMicroAllocator(IPersistentBufferAllocator* persistent_buffer_allocator, INonPersistentBufferAllocator* non_persistent_buffer_allocator, MicroMemoryPlanner* memory_planner)
