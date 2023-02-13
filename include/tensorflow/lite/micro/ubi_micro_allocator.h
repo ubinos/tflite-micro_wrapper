@@ -29,6 +29,8 @@ namespace tflite {
     protected:
         UbiMicroAllocator(IPersistentBufferAllocator* persistent_buffer_allocator, INonPersistentBufferAllocator* non_persistent_buffer_allocator, MicroMemoryPlanner* memory_planner);
 
+        UbiMicroAllocator(UbiArenaBufferAllocator* memory_allocator, MicroMemoryPlanner* memory_planner);
+
         TF_LITE_REMOVE_VIRTUAL_DELETE
     };
 }

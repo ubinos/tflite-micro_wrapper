@@ -79,18 +79,20 @@ UbiMicroAllocator* tflite::UbiMicroAllocator::Create(uint8_t* tensor_arena, size
 }
 
 size_t UbiMicroAllocator::GetDefaultTailUsage(bool is_memory_planner_given) {
-  size_t total_size = AlignSizeUp<UbiArenaBufferAllocator>() +
-                      AlignSizeUp<UbiMicroAllocator>() +
-                      AlignSizeUp<MicroBuiltinDataAllocator>() +
-                      AlignSizeUp<SubgraphAllocations>();
-  if (!is_memory_planner_given) {
-    total_size += AlignSizeUp<GreedyMemoryPlanner>();
-  }
+  size_t total_size = MicroAllocator::GetDefaultTailUsage(is_memory_planner_given) -
+                            AlignSizeUp<SingleArenaBufferAllocator>() -
+                            AlignSizeUp<MicroAllocator>() +
+                            AlignSizeUp<UbiArenaBufferAllocator>() +
+                            AlignSizeUp<UbiMicroAllocator>();
   return total_size;
 }
 
 tflite::UbiMicroAllocator::UbiMicroAllocator(IPersistentBufferAllocator* persistent_buffer_allocator, INonPersistentBufferAllocator* non_persistent_buffer_allocator, MicroMemoryPlanner* memory_planner)
     : MicroAllocator(persistent_buffer_allocator, non_persistent_buffer_allocator, memory_planner) {
+}
+
+tflite::UbiMicroAllocator::UbiMicroAllocator(UbiArenaBufferAllocator* memory_allocator, MicroMemoryPlanner* memory_planner)
+    : MicroAllocator(memory_allocator, memory_allocator, memory_planner) {
 }
 
 }  // namespace tflite

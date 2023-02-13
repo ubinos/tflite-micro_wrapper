@@ -1,12 +1,12 @@
 #ifndef RECORDINGUBIMICROALLOCATOR_H
 #define RECORDINGUBIMICROALLOCATOR_H
 
-namespace tflite {
-
 #include "tensorflow/lite/micro/arena_allocator/recording_ubi_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/ubi_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
+
+namespace tflite {
 
     /**
  * Utility subclass of MicroAllocator that records all allocations inside the arena.
@@ -60,23 +60,23 @@ class RecordingUbiMicroAllocator : public tflite::UbiMicroAllocator {
         /**
          * ubinos_lang_config {"override": true}
          */
-        void*  AllocatePersistentBuffer(size_t bytes);
+        void* AllocatePersistentBuffer(size_t bytes) override;
 
     protected:
         /**
          * ubinos_lang_config {"override": true}
          */
-        TfLiteStatus AllocateNodeAndRegistrations(const Model* model, SubgraphAllocations* subgraph_allocations);
+        TfLiteStatus AllocateNodeAndRegistrations(const Model* model, SubgraphAllocations* subgraph_allocations) override;
 
         /**
          * ubinos_lang_config {"override": true}
          */
-        TfLiteStatus AllocateTfLiteEvalTensors(const Model* model, SubgraphAllocations* subgraph_allocations);
+        TfLiteStatus AllocateTfLiteEvalTensors(const Model* model, SubgraphAllocations* subgraph_allocations) override;
 
         /**
          * ubinos_lang_config {"override": true}
          */
-        TfLiteStatus AllocateVariables(const SubGraph* subgraph, TfLiteEvalTensor* eval_tensors);
+        TfLiteStatus AllocateVariables(const SubGraph* subgraph, TfLiteEvalTensor* eval_tensors) override;
 
         /**
          * TODO(b/162311891): Once all kernels have been updated to the new API drop this method.
@@ -84,14 +84,14 @@ class RecordingUbiMicroAllocator : public tflite::UbiMicroAllocator {
          * 
          * ubinos_lang_config {"override": true}
          */
-        TfLiteTensor* AllocatePersistentTfLiteTensorInternal();
+        TfLiteTensor* AllocatePersistentTfLiteTensorInternal() override;
 
         /**
          * TODO(b/162311891): Once all kernels have been updated to the new API drop this function since all allocations for quantized data will take place in the temp section.
          * 
          * ubinos_lang_config {"override": true}
          */
-        TfLiteStatus PopulateTfLiteTensorFromFlatbuffer(const Model* model, TfLiteTensor* tensor, int tensor_index, int subgraph_index, bool allocate_temp);
+        TfLiteStatus PopulateTfLiteTensorFromFlatbuffer(const Model* model, TfLiteTensor* tensor, int tensor_index, int subgraph_index, bool allocate_temp) override;
 
     private:
         RecordingUbiMicroAllocator(tflite::RecordingUbiArenaBufferAllocator* memory_allocator, MicroMemoryPlanner* memory_planner);
@@ -103,7 +103,8 @@ class RecordingUbiMicroAllocator : public tflite::UbiMicroAllocator {
         RecordedAllocation SnapshotAllocationUsage() const;
 
         void RecordAllocationUsage(const RecordedAllocation& snapshotted_allocation, RecordedAllocation& recorded_allocation);
-    };
-}
+ };
+
+}  // namespace tflite
 
 #endif
