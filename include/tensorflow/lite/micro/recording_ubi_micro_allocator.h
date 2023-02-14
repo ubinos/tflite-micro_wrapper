@@ -19,16 +19,38 @@ class RecordingUbiMicroAllocator : public tflite::UbiMicroAllocator {
 
     private:
         const RecordingUbiArenaBufferAllocator* recording_memory_allocator_;
-        RecordedAllocation recorded_tflite_eval_tensor_data_;
-        RecordedAllocation recorded_persistent_tflite_tensor_data_;
-        RecordedAllocation recorded_persistent_tflite_tensor_quantization_data_;
-        RecordedAllocation recorded_persistent_buffer_data_;
-        RecordedAllocation recorded_tflite_tensor_variable_buffer_data_;
-        RecordedAllocation recorded_node_and_registration_array_data_;
+
+        /**
+         * ubinos_lang_config {"init_value": "{}"}
+         */
+        RecordedAllocation recorded_tflite_eval_tensor_data_ = {};
+        /**
+         * ubinos_lang_config {"init_value": "{}"}
+         */
+        RecordedAllocation recorded_persistent_tflite_tensor_data_ = {};
+        /**
+         * ubinos_lang_config {"init_value": "{}"}
+         */
+        RecordedAllocation recorded_persistent_tflite_tensor_quantization_data_ = {};
+        /**
+         * ubinos_lang_config {"init_value": "{}"}
+         */
+        RecordedAllocation recorded_persistent_buffer_data_ = {};
+        /**
+         * ubinos_lang_config {"init_value": "{}"}
+         */
+        RecordedAllocation recorded_tflite_tensor_variable_buffer_data_ = {};
+        /**
+         * ubinos_lang_config {"init_value": "{}"}
+         */
+        RecordedAllocation recorded_node_and_registration_array_data_ = {};
+
         /**
          * TODO(b/187993291): Re-enable OpData allocating tracking.
+         * 
+         * ubinos_lang_config {"init_value": "{}"}
          */
-        RecordedAllocation recorded_op_data_;
+        RecordedAllocation recorded_op_data_ = {};
 
     public:
         /**
