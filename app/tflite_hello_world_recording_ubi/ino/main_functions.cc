@@ -24,13 +24,13 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/system_setup.h"
 #include "tensorflow/lite/schema/schema_generated.h"
-#include "tensorflow/lite/micro/recording_micro_allocator.h"
-#include "tensorflow/lite/micro/recording_micro_interpreter.h"
+#include "tensorflow/lite/micro/recording_ubi_micro_allocator.h"
+#include "tensorflow/lite/micro/recording_ubi_micro_interpreter.h"
 
 // Globals, used for compatibility with Arduino-style sketches.
 namespace {
 const tflite::Model* model = nullptr;
-tflite::RecordingMicroInterpreter* interpreter = nullptr;
+tflite::RecordingUbiMicroInterpreter* interpreter = nullptr;
 TfLiteTensor* input = nullptr;
 TfLiteTensor* output = nullptr;
 int inference_count = 0;
@@ -38,7 +38,7 @@ int inference_count = 0;
 constexpr int kTensorArenaSize = 2000;
 alignas(16) uint8_t tensor_arena[kTensorArenaSize];
 
-const tflite::RecordingMicroAllocator* allocator = nullptr;
+const tflite::RecordingUbiMicroAllocator* allocator = nullptr;
 }  // namespace
 
 // The name of this function is important for Arduino compatibility.
@@ -61,7 +61,7 @@ void setup() {
   static tflite::AllOpsResolver resolver;
 
   // Build an interpreter to run the model with.
-  static tflite::RecordingMicroInterpreter static_interpreter(
+  static tflite::RecordingUbiMicroInterpreter static_interpreter(
       model, resolver, tensor_arena, kTensorArenaSize);
   interpreter = &static_interpreter;
 

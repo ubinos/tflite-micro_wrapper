@@ -13,6 +13,8 @@ namespace tflite {
 
         UbiMicroInterpreter(const Model* model, const MicroOpResolver& op_resolver, uint8_t* tensor_arena, size_t tensor_arena_size, MicroResourceVariables* resource_variables = nullptr, MicroProfilerInterface* profiler = nullptr);
 
+        TF_LITE_REMOVE_VIRTUAL_DELETE
+
         const UbiMicroAllocator& GetMicroAllocator() const;
 
     private:

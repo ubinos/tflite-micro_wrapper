@@ -53,3 +53,5 @@ file(GLOB_RECURSE _tmp_sources
 
 set(PROJECT_APP_SOURCES ${PROJECT_APP_SOURCES} ${_tmp_sources})
 
+add_definitions("-DTF_LITE_STATIC_MEMORY")
+add_definitions("-DTF_LITE_MCU_DEBUG_LOG")
