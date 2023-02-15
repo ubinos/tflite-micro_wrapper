@@ -69,12 +69,13 @@ const RecordingUbiArenaBufferAllocator* tflite::RecordingUbiMicroAllocator::GetS
 }
 
 void tflite::RecordingUbiMicroAllocator::PrintAllocations() const {
-  MicroPrintf("[RecordingMicroAllocator] Arena allocation total %d bytes",
-              recording_memory_allocator_->GetUsedBytes());
-  MicroPrintf("[RecordingMicroAllocator] Arena allocation head %d bytes",
-              recording_memory_allocator_->GetNonPersistentUsedBytes());
-  MicroPrintf("[RecordingMicroAllocator] Arena allocation tail %d bytes",
-              recording_memory_allocator_->GetPersistentUsedBytes());
+  MicroPrintf("[RecordingMicroAllocator] Arena allocation total (max.) %d (%d) bytes",
+              recording_memory_allocator_->GetUsedBytes(), recording_memory_allocator_->GetUsedBytesMax());
+  MicroPrintf("[RecordingMicroAllocator] Arena allocation head (max.) %d (%d) bytes",
+              recording_memory_allocator_->GetNonPersistentUsedBytes(), recording_memory_allocator_->GetNonPersistentUsedBytesMax());
+  MicroPrintf("[RecordingMicroAllocator] Arena allocation tail (max.) %d (%d) bytes",
+              recording_memory_allocator_->GetPersistentUsedBytes(), recording_memory_allocator_->GetPersistentUsedBytesMax());
+
   PrintRecordedAllocation(RecordedAllocationType::kTfLiteEvalTensorData,
                           "TfLiteEvalTensor data", "allocations");
   PrintRecordedAllocation(RecordedAllocationType::kPersistentTfLiteTensorData,

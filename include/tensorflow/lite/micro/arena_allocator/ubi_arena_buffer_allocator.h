@@ -17,6 +17,19 @@ namespace tflite {
         uint8_t* head_;
         uint8_t* tail_;
         uint8_t* temp_;
+
+        uint8_t* head_max_;
+        uint8_t* tail_min_;
+        uint8_t* temp_max_;
+
+        size_t head_used_size_ = 0;
+        size_t tail_used_size_ = 0;
+        size_t temp_used_size_ = 0;
+
+        size_t head_used_size_max_ = 0;
+        size_t tail_used_size_max_ = 0;
+        size_t temp_used_size_max_ = 0;
+
         /**
          * The combination of the checksum of outstanding temporary buffer pointers and the count of outstanding temporary buffer provide a low cost mechanism to audit temporary buffers' allocation and deallocation.
          * XOR Check sum for outstanding temp buffers.
@@ -88,6 +101,8 @@ namespace tflite {
          */
         virtual size_t GetUsedBytes() const;
 
+        virtual size_t GetUsedBytesMax() const;
+
         /**
          * Returns a pointer pointing to the start of the overlay memory, which is used for activation tensors and scratch buffers by kernels at Invoke stage.
          * 
@@ -102,12 +117,16 @@ namespace tflite {
          */
         virtual size_t GetNonPersistentUsedBytes() const override;
 
+        virtual size_t GetNonPersistentUsedBytesMax() const;
+
         /**
          * Returns the size of all persistent allocations in bytes.
          * 
          * ubinos_lang_config {"override": true}
          */
         virtual size_t GetPersistentUsedBytes() const override;
+
+        virtual size_t GetPersistentUsedBytesMax() const;
 
         /**
          * Returns the number of bytes available with a given alignment.

@@ -18,7 +18,10 @@ tflite::UbiArenaBufferAllocator::UbiArenaBufferAllocator(uint8_t* buffer_head, u
       buffer_tail_(buffer_tail),
       head_(buffer_head),
       tail_(buffer_tail),
-      temp_(buffer_head_) {}
+      temp_(buffer_head_),
+      head_max_(head_),
+      tail_min_(tail_),
+      temp_max_(temp_) {}
 
 tflite::UbiArenaBufferAllocator::UbiArenaBufferAllocator(uint8_t* buffer_head, size_t buffer_size)
     : UbiArenaBufferAllocator(buffer_head, buffer_head + buffer_size) {}
@@ -57,8 +60,16 @@ TfLiteStatus tflite::UbiArenaBufferAllocator::ResizeBuffer(uint8_t* resizable_bu
         size, available_memory, size - available_memory);
     return kTfLiteError;
   }
+
   head_ = aligned_result + size;
+  head_max_ = std::max(head_max_, head_);
+  head_used_size_ = head_ - buffer_head_;
+  head_used_size_max_ = std::max(head_used_size_max_, head_used_size_);
+
   temp_ = head_;
+  temp_max_ = std::max(temp_max_, temp_);
+  temp_used_size_ = temp_ - buffer_head_;
+  temp_used_size_max_ = std::max(temp_used_size_max_, temp_used_size_);
 
   return kTfLiteOk;
 }
@@ -72,6 +83,9 @@ TfLiteStatus tflite::UbiArenaBufferAllocator::ResetTempAllocations() {
     return kTfLiteError;
   }
   temp_ = head_;
+  temp_max_ = std::max(temp_max_, temp_);
+  temp_used_size_ = temp_ - buffer_head_;
+  temp_used_size_max_ = std::max(temp_used_size_max_, temp_used_size_);
   return kTfLiteOk;
 }
 
@@ -94,6 +108,10 @@ size_t tflite::UbiArenaBufferAllocator::GetUsedBytes() const {
   return GetPersistentUsedBytes() + GetNonPersistentUsedBytes();
 }
 
+size_t tflite::UbiArenaBufferAllocator::GetUsedBytesMax() const {
+  return GetPersistentUsedBytesMax() + GetNonPersistentUsedBytesMax();
+}
+
 uint8_t* tflite::UbiArenaBufferAllocator::GetOverlayMemoryAddress() const {
   return buffer_head_;
 }
@@ -102,8 +120,16 @@ size_t tflite::UbiArenaBufferAllocator::GetNonPersistentUsedBytes() const {
   return std::max(head_ - buffer_head_, temp_ - buffer_head_);
 }
 
+size_t tflite::UbiArenaBufferAllocator::GetNonPersistentUsedBytesMax() const {
+  return std::max(head_max_ - buffer_head_, temp_max_ - buffer_head_);
+}
+
 size_t tflite::UbiArenaBufferAllocator::GetPersistentUsedBytes() const {
   return buffer_tail_ - tail_;
+}
+
+size_t tflite::UbiArenaBufferAllocator::GetPersistentUsedBytesMax() const {
+  return buffer_tail_ - tail_min_;
 }
 
 size_t tflite::UbiArenaBufferAllocator::GetAvailableMemory(size_t alignment) const {
@@ -132,6 +158,10 @@ uint8_t* tflite::UbiArenaBufferAllocator::AllocateTemp(size_t size, size_t align
     return nullptr;
   }
   temp_ = aligned_result + size;
+  temp_max_ = std::max(temp_max_, temp_);  
+  temp_used_size_ = temp_ - buffer_head_;
+  temp_used_size_max_ = std::max(temp_used_size_max_, temp_used_size_);
+
   temp_buffer_ptr_check_sum_ ^= (reinterpret_cast<intptr_t>(aligned_result));
   temp_buffer_count_++;
   return aligned_result;
@@ -159,6 +189,10 @@ uint8_t* tflite::UbiArenaBufferAllocator::AllocatePersistentBuffer(size_t size, 
     return nullptr;
   }
   tail_ = aligned_result;
+  tail_min_ = std::min(tail_min_, tail_);
+  tail_used_size_ = buffer_tail_ - tail_;
+  tail_used_size_max_ = std::max(tail_used_size_max_, tail_used_size_);
+
   return aligned_result;
 }
 
