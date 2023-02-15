@@ -34,6 +34,7 @@ tflite::RecordingUbiMicroInterpreter* interpreter = nullptr;
 TfLiteTensor* input = nullptr;
 TfLiteTensor* output = nullptr;
 int inference_count = 0;
+int inference_count_static = 0;
 
 constexpr int kTensorArenaSize = 2000;
 alignas(16) uint8_t tensor_arena[kTensorArenaSize];
@@ -109,9 +110,11 @@ void loop() {
     MicroPrintf("Invoke failed on x: %f\n", static_cast<double>(x));
     return;
   }
-
-  // MicroPrintf("After invoke");
-  // allocator->PrintAllocations();
+  if (inference_count_static <= 0)
+  {
+    MicroPrintf("After invoke (%d)", inference_count_static);
+    allocator->PrintAllocations();
+  }
 
   // Obtain the quantized output from model's output tensor
   int8_t y_quantized = output->data.int8[0];
@@ -125,5 +128,6 @@ void loop() {
   // Increment the inference_counter, and reset it if we have reached
   // the total number per cycle
   inference_count += 1;
+  inference_count_static += 1;
   if (inference_count >= kInferencesPerCycle) inference_count = 0;
 }
