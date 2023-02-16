@@ -14,13 +14,15 @@ limitations under the License.
 ==============================================================================*/
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/examples/person_detection/model_settings.h"
-#include "tensorflow/lite/micro/examples/person_detection/testdata/no_person_image_data.h"
-#include "tensorflow/lite/micro/examples/person_detection/testdata/person_image_data.h"
+
+#include "model_settings.h"
+#include "testdata/no_person_image_data.h"
+#include "testdata/person_image_data.h"
+#include "models/person_detect_model_data.h"
+
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
-#include "tensorflow/lite/micro/models/person_detect_model_data.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
