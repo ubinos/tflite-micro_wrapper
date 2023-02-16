@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <ubinos_config.h>
+
 #include "main_functions.h"
 
 #include "detection_responder.h"
@@ -20,7 +22,20 @@ limitations under the License.
 #include "model_settings.h"
 #include "models/person_detect_model_data.h"
 
+#if   (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__MICRO)
 #include "tensorflow/lite/micro/micro_interpreter.h"
+#elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO)
+#include "tensorflow/lite/micro/recording_micro_allocator.h"
+#include "tensorflow/lite/micro/recording_micro_interpreter.h"
+#elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__UBI_MICRO)
+#include "tensorflow/lite/micro/ubi_micro_interpreter.h"
+#elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO)
+#include "tensorflow/lite/micro/recording_ubi_micro_allocator.h"
+#include "tensorflow/lite/micro/recording_ubi_micro_interpreter.h"
+#else
+#error "Unsupported TFLITE_MICRO__INTERPRETER_TYPE"
+#endif
+
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/system_setup.h"
@@ -29,7 +44,17 @@ limitations under the License.
 // Globals, used for compatibility with Arduino-style sketches.
 namespace {
 const tflite::Model* model = nullptr;
+#if   (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__MICRO)
 tflite::MicroInterpreter* interpreter = nullptr;
+#elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO)
+tflite::RecordingMicroInterpreter* interpreter = nullptr;
+#elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__UBI_MICRO)
+tflite::UbiMicroInterpreter* interpreter = nullptr;
+#elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO)
+tflite::RecordingUbiMicroInterpreter* interpreter = nullptr;
+#else
+#error "Unsupported TFLITE_MICRO__INTERPRETER_TYPE"
+#endif
 TfLiteTensor* input = nullptr;
 
 // In order to use optimized tensorflow lite kernels, a signed int8_t quantized
@@ -42,6 +67,16 @@ TfLiteTensor* input = nullptr;
 // An area of memory to use for input, output, and intermediate arrays.
 constexpr int kTensorArenaSize = 136 * 1024;
 alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
+
+#if   (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO)
+const tflite::RecordingMicroAllocator* allocator = nullptr;
+#elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO)
+const tflite::RecordingUbiMicroAllocator* allocator = nullptr;
+#endif
+
+#if ((TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO))
+int inference_count_static = 0;
+#endif
 }  // namespace
 
 // The name of this function is important for Arduino compatibility.
@@ -77,9 +112,26 @@ void setup() {
 
   // Build an interpreter to run the model with.
   // NOLINTNEXTLINE(runtime-global-variables)
+#if   (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__MICRO)
   static tflite::MicroInterpreter static_interpreter(
+#elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO)
+  static tflite::RecordingMicroInterpreter static_interpreter(
+#elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__UBI_MICRO)
+  static tflite::UbiMicroInterpreter static_interpreter(
+#elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO)
+  static tflite::RecordingUbiMicroInterpreter static_interpreter(
+#else
+#error "Unsupported TFLITE_MICRO__INTERPRETER_TYPE"
+#endif
       model, micro_op_resolver, tensor_arena, kTensorArenaSize);
   interpreter = &static_interpreter;
+
+#if ((TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO))
+  allocator = &(interpreter->GetMicroAllocator());
+
+  MicroPrintf("After create interpreter");
+  allocator->PrintAllocations();
+#endif
 
   // Allocate memory from the tensor_arena for the model's tensors.
   TfLiteStatus allocate_status = interpreter->AllocateTensors();
@@ -87,6 +139,11 @@ void setup() {
     MicroPrintf("AllocateTensors() failed");
     return;
   }
+
+#if ((TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO))
+  MicroPrintf("After allocate tensors");
+  allocator->PrintAllocations();
+#endif
 
   // Get information about the memory area to use for the model's input.
   input = interpreter->input(0);
@@ -105,10 +162,22 @@ void loop() {
     MicroPrintf("Invoke failed.");
   }
 
+#if ((TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO))
+  if (inference_count_static <= 0)
+  {
+    MicroPrintf("After invoke (%d)", inference_count_static);
+    allocator->PrintAllocations();
+  }
+#endif
+
   TfLiteTensor* output = interpreter->output(0);
 
   // Process the inference results.
   int8_t person_score = output->data.uint8[kPersonIndex];
   int8_t no_person_score = output->data.uint8[kNotAPersonIndex];
   RespondToDetection(person_score, no_person_score);
+
+#if ((TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO))
+  inference_count_static += 1;
+#endif
 }

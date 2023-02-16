@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include <ubinos.h>
+#include <ubinos_config.h>
 
 #include "image_provider.h"
 #include "model_settings.h"
