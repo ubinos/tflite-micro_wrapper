@@ -13,15 +13,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/examples/person_detection/main_functions.h"
+#include "main_functions.h"
 
-#include "tensorflow/lite/micro/examples/person_detection/detection_responder.h"
-#include "tensorflow/lite/micro/examples/person_detection/image_provider.h"
-#include "tensorflow/lite/micro/examples/person_detection/model_settings.h"
+#include "detection_responder.h"
+#include "image_provider.h"
+#include "model_settings.h"
+#include "models/person_detect_model_data.h"
+
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
-#include "tensorflow/lite/micro/models/person_detect_model_data.h"
 #include "tensorflow/lite/micro/system_setup.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
