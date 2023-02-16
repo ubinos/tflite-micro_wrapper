@@ -11,6 +11,7 @@ set_cache(PROJECT_TOOLCHAIN_CXX_STD "GNU++14" STRING)
 set_cache(PROJECT_TOOLCHAIN_CXX_W_NO_CXX14_COMPAT FALSE BOOL)
 
 set_cache(TFLITE_MICRO__INCLUDE_CMSIS_NN FALSE BOOL)
+set_cache(TFLITE_MICRO__PERSON_DETECTION_IMAGE_PROVIDER_TYPE "TEST01" STRING)
 
 include(${PROJECT_UBINOS_DIR}/config/ubinos_local_llvm_baremetal.cmake)
 include(${PROJECT_LIBRARY_DIR}/tflite-micro_wrapper/config/tflite_micro.cmake)

@@ -20,6 +20,8 @@ set_cache_default(TFLITE_MICRO__TF_LITE_USE_CTIME FALSE BOOL "Use TFLite CTime")
 
 set_cache_default(TFLITE_MICRO__INCLUDE_CMSIS_NN TRUE BOOL "Include ARM CMSIS NN")
 
+set_cache_default(TFLITE_MICRO__PERSON_DETECTION_IMAGE_PROVIDER_TYPE "DUMMY" STRING "Image provider type of person detection app [DUMMY | TEST01]")
+
 set_cache_default(FLATBUFFERS_LOCALE_INDEPENDENT FALSE BOOL "FlatBuffers locale independent")
 
 add_definitions(-DFLATBUFFERS_LOCALE_INDEPENDENT=$<BOOL:${FLATBUFFERS_LOCALE_INDEPENDENT}>)
