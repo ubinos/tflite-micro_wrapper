@@ -24,6 +24,3 @@ set(APP__NAME "tflite_micro_micro_resource_variable_test")
 get_filename_component(_tmp_source_dir "${TFLITE_MICRO__BASE_DIR}/tensorflow/lite/micro" ABSOLUTE)
 
 set(PROJECT_APP_SOURCES ${PROJECT_APP_SOURCES} ${_tmp_source_dir}/micro_resource_variable_test.cc)
-
-add_definitions("-DTF_LITE_STATIC_MEMORY")
-add_definitions("-DTF_LITE_MCU_DEBUG_LOG")

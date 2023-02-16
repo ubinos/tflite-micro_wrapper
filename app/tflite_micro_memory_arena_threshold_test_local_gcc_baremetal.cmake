@@ -26,6 +26,3 @@ get_filename_component(_tmp_source_dir "${TFLITE_MICRO__BASE_DIR}/tensorflow/lit
 set(PROJECT_APP_SOURCES ${PROJECT_APP_SOURCES} ${_tmp_source_dir}/memory_arena_threshold_test.cc)
 
 set(PROJECT_LIBRARIES ${PROJECT_LIBRARIES} pthread)
-
-add_definitions("-DTF_LITE_STATIC_MEMORY")
-add_definitions("-DTF_LITE_MCU_DEBUG_LOG")

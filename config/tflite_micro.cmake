@@ -13,6 +13,11 @@ set_cache_default(TFLITE_MICRO__FLATBUFFERS_BASE_DIR "${PROJECT_LIBRARY_DIR}/fla
 set_cache_default(TFLITE_MICRO__GEMMLOWP_BASE_DIR "${PROJECT_LIBRARY_DIR}/gemmlowp" STRING "gemmlowp project base dir")
 set_cache_default(TFLITE_MICRO__RUY_BASE_DIR "${PROJECT_LIBRARY_DIR}/ruy" STRING "ruy project base dir")
 
+set_cache_default(TFLITE_MICRO__TF_LITE_DISABLE_X86_NEON TRUE BOOL "Disable x86 NEON")
+set_cache_default(TFLITE_MICRO__TF_LITE_STATIC_MEMORY TRUE BOOL "Use TFLite staic memory")
+set_cache_default(TFLITE_MICRO__TF_LITE_MCU_DEBUG_LOG TRUE BOOL "Use TFLite MCU debug log")
+set_cache_default(TFLITE_MICRO__TF_LITE_USE_CTIME FALSE BOOL "Use TFLite CTime")
+
 set_cache_default(TFLITE_MICRO__INCLUDE_CMSIS_NN TRUE BOOL "Include ARM CMSIS NN")
 
 set_cache_default(FLATBUFFERS_LOCALE_INDEPENDENT FALSE BOOL "FlatBuffers locale independent")

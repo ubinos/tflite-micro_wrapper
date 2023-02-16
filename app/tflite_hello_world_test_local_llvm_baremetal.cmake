@@ -43,6 +43,3 @@ file(GLOB_RECURSE _tmp_sources
     "${_tmp_source_dir}/*.S")
 
 set(PROJECT_APP_SOURCES ${PROJECT_APP_SOURCES} ${_tmp_sources})
-
-add_definitions("-DTF_LITE_STATIC_MEMORY")
-add_definitions("-DTF_LITE_MCU_DEBUG_LOG")
