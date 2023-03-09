@@ -1,7 +1,7 @@
 #include <ubinos.h>
 
 #if (UBINOS__BSP__BOARD_MODEL == UBINOS__BSP__BOARD_MODEL__NUCLEOF207ZG)
-#if defined(UBINOS_PRESENT)
+#if defined(STM32CUBEF2__DTTY_STM32_UART_ENABLE)
 
 #include <ubinos/bsp/arch.h>
 
@@ -73,6 +73,6 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *huart)
     HAL_NVIC_DisableIRQ(DTTY_STM32_UART_IRQn);
 }
 
-#endif /* defined(UBINOS_PRESENT) */
+#endif /* defined(STM32CUBEF2__DTTY_STM32_UART_ENABLE) */
 #endif /* (UBINOS__BSP__BOARD_MODEL == UBINOS__BSP__BOARD_MODEL__NUCLEOF207ZG) */
 

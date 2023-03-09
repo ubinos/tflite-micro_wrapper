@@ -7,7 +7,7 @@
 #include <ubinos.h>
 
 #if (UBINOS__BSP__BOARD_MODEL == UBINOS__BSP__BOARD_MODEL__NUCLEOF207ZG)
-#if defined(UBINOS_PRESENT)
+#if defined(STM32CUBEF2__DTTY_STM32_UART_ENABLE)
 
 #include "main.h"
 
@@ -58,6 +58,6 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
     }
 }
 
-#endif /* defined(UBINOS_PRESENT) */
+#endif /* defined(STM32CUBEF2__DTTY_STM32_UART_ENABLE) */
 #endif /* (UBINOS__BSP__BOARD_MODEL == UBINOS__BSP__BOARD_MODEL__NUCLEOF207ZG) */
 
