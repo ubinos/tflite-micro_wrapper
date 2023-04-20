@@ -158,7 +158,7 @@ uint8_t* tflite::UbiArenaBufferAllocator::AllocateTemp(size_t size, size_t align
     return nullptr;
   }
   temp_ = aligned_result + size;
-  temp_max_ = std::max(temp_max_, temp_);  
+  temp_max_ = std::max(temp_max_, temp_);
   temp_used_size_ = temp_ - buffer_head_;
   temp_used_size_max_ = std::max(temp_used_size_max_, temp_used_size_);
 
