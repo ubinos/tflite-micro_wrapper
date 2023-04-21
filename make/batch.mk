@@ -143,6 +143,12 @@
 	make -f makefile.mk $@ CONFIG_DIR=../app CONFIG_NAME=tflite_person_detection_nrf52840dk_recording_ubi
 	@echo ""
 	@echo ""
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+	@echo ""
+	@echo ""
+	make -f makefile.mk $@ CONFIG_DIR=../app CONFIG_NAME=tflite_person_detection_nrf52840dk_ubi_heap
+	@echo ""
+	@echo ""
 
 ifeq ("$(SYSTEM_NAME)", "Linux")
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
