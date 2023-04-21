@@ -43,7 +43,6 @@ get_filename_component(_tmp_source_dir "${CMAKE_CURRENT_LIST_DIR}/${APP__NAME}" 
 string(TOLOWER ${UBINOS__BSP__BOARD_VARIATION_NAME} _temp_board_model)
 string(TOLOWER ${UBINOS__BSP__NRF52_SOFTDEVICE_NAME} _temp_softdevice_name)
 
-
 include_directories(${_tmp_source_dir}/arch/arm/cortexm/${_temp_board_model}/${_temp_softdevice_name}/config)
 include_directories(${_tmp_source_dir}/arch/arm/cortexm/${_temp_board_model})
 include_directories(${_tmp_source_dir})

@@ -9,7 +9,7 @@
 #include "tensorflow/lite/micro/compatibility.h"
 
 namespace tflite {
-    class UbiHeapBufferAllocator : public flite::INonPersistentBufferAllocator, public tflite::IPersistentBufferAllocator {
+    class UbiHeapBufferAllocator : public IPersistentBufferAllocator, public INonPersistentBufferAllocator {
 
     private:
         /**
@@ -20,6 +20,7 @@ namespace tflite {
          * ubinos_lang_config {"init_value": 0}
          */
         intptr_t temp_buffer_ptr_check_sum_ = 0;
+
         /**
          * ubinos_lang_config {"init_value": 0}
          */
@@ -42,6 +43,9 @@ namespace tflite {
 
         /**
          * Resizes a buffer that is previously returned by the AllocateResizableBuffer.
+         * In current implementation, it Adjusts the head (lowest address and moving upwards) memory allocation to a given size.
+         * Calls to this method will also invalidate all temporary allocation values (it sets the location of temp space at the end of the head section).
+         * This call will fail if a chain of allocations through AllocateTemp() have not been cleaned up with a call to ResetTempAllocations().
          *
          * ubinos_lang_config {"override": true}
          */
@@ -116,6 +120,14 @@ namespace tflite {
         virtual size_t GetPersistentUsedBytesMax() const;
 
         /**
+         * Returns the number of bytes available with a given alignment.
+         * This number takes in account any temporary allocations.
+         *
+         * ubinos_lang_config {"override": true}
+         */
+        virtual size_t GetAvailableMemory(size_t alignment) const override;
+
+        /**
          * Signals that a temporary buffer is no longer needed.
          *
          * ubinos_lang_config {"override": true}
@@ -135,7 +147,8 @@ namespace tflite {
         virtual uint8_t* AllocateTemp(size_t size, size_t alignment) override;
 
         /**
-         * Returns a buffer that can be resized via ResizeBuffer().
+         * Returns a buffer that is resizable viable ResizeBuffer().
+         * Only one resizable buffer is currently supported.
          *
          * ubinos_lang_config {"override": true}
          */
