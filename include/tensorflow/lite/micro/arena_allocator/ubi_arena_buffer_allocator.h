@@ -9,7 +9,7 @@
 #include "tensorflow/lite/micro/compatibility.h"
 
 namespace tflite {
-    class UbiArenaBufferAllocator : public tflite::IPersistentBufferAllocator, public tflite::INonPersistentBufferAllocator {
+    class UbiArenaBufferAllocator : public IPersistentBufferAllocator, public INonPersistentBufferAllocator {
 
     private:
         uint8_t* buffer_head_;
@@ -56,6 +56,7 @@ namespace tflite {
          * ubinos_lang_config {"init_value": 0}
          */
         intptr_t temp_buffer_ptr_check_sum_ = 0;
+
         /**
          * ubinos_lang_config {"init_value": 0}
          */
@@ -74,9 +75,9 @@ namespace tflite {
         TF_LITE_REMOVE_VIRTUAL_DELETE
 
         /**
-         * Creates a new SingleArenaBufferAllocator from a given buffer head and size.
+         * Creates a new UbiArenaBufferAllocator from a given buffer head and size.
          */
-        static tflite::UbiArenaBufferAllocator* Create(uint8_t* buffer_head, size_t buffer_size);
+        static UbiArenaBufferAllocator* Create(uint8_t* buffer_head, size_t buffer_size);
 
         /**
          * Resizes a buffer that is previously returned by the AllocateResizableBuffer.

@@ -6,12 +6,12 @@
 #include "tensorflow/lite/micro/micro_allocator.h"
 
 namespace tflite {
-    class UbiMicroAllocator : public tflite::MicroAllocator {
+    class UbiMicroAllocator : public MicroAllocator {
 
     public:
         /**
-         * Creates a MicroAllocator instance using the provided SingleArenaBufferAllocator instance and the MemoryPlanner.
-         * This allocator instance will use the SingleArenaBufferAllocator instance to manage allocations internally.
+         * Creates a UbiMicroAllocator instance using the provided UbiArenaBufferAllocator instance and the MemoryPlanner.
+         * This allocator instance will use the UbiArenaBufferAllocator instance to manage allocations internally.
          */
         static UbiMicroAllocator* Create(UbiArenaBufferAllocator* memory_allocator, MicroMemoryPlanner* memory_planner);
 
