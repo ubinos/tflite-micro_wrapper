@@ -1,3 +1,8 @@
+#if defined(UBINOS_BSP_PRESENT)
+
+#include <ubinos.h>
+#include <ubinos/ubiclib/heap.h>
+
 #include "tensorflow/lite/micro/arena_allocator/ubi_heap_buffer_allocator.h"
 
 #include <cstddef>
@@ -13,14 +18,25 @@
 
 namespace tflite {
 
-tflite::UbiHeapBufferAllocator::UbiHeapBufferAllocator() {}
+tflite::UbiHeapBufferAllocator::UbiHeapBufferAllocator() {
+  TfLiteStatus status;
+  status = ResizeBuffer(nullptr, 4, 1);
+  ubi_assert(status == kTfLiteOk);
+  status = ResizeBuffer(nullptr, 0, 1);
+  ubi_assert(status == kTfLiteOk);
+}
 
-tflite::UbiHeapBufferAllocator::~UbiHeapBufferAllocator() {}
+tflite::UbiHeapBufferAllocator::~UbiHeapBufferAllocator() {
+  TfLiteStatus status;
+  ResetTempAllocations();
+  if (resizable_buffer_size_ > 0) {
+    status = ResizeBuffer(nullptr, 0, 1);
+    ubi_assert(status == kTfLiteOk);
+  }
+}
 
-tflite::UbiHeapBufferAllocator* tflite::UbiHeapBufferAllocator::Create(uint8_t* buffer_head, size_t buffer_size) {
-  TFLITE_DCHECK(buffer_head != nullptr);
-  UbiHeapBufferAllocator tmp =
-      UbiHeapBufferAllocator(buffer_head, buffer_size);
+tflite::UbiHeapBufferAllocator* tflite::UbiHeapBufferAllocator::Create() {
+  UbiHeapBufferAllocator tmp = UbiHeapBufferAllocator();
 
   // Allocate enough bytes from the buffer to create a
   // UbiHeapBufferAllocator. The new instance will use the current adjusted
@@ -32,65 +48,128 @@ tflite::UbiHeapBufferAllocator* tflite::UbiHeapBufferAllocator::Create(uint8_t* 
 }
 
 TfLiteStatus tflite::UbiHeapBufferAllocator::ResizeBuffer(uint8_t* resizable_buf, size_t size, size_t alignment) {
-  // Only supports one resizable buffer, which starts at the buffer head.
-  uint8_t* expect_resizable_buf = AlignPointerUp(buffer_head_, alignment);
-  if (head_ != temp_ || resizable_buf != expect_resizable_buf) {
-    MicroPrintf(
-        "Internal error: either buffer is not resizable or "
-        "ResetTempAllocations() is not called before ResizeBuffer().");
-    return kTfLiteError;
-  }
+  TfLiteStatus status;
+  uint8_t* result;
+  int r;
 
-  uint8_t* const aligned_result = AlignPointerUp(buffer_head_, alignment);
-  const size_t available_memory = tail_ - aligned_result;
-  if (available_memory < size) {
-    MicroPrintf(
-        "Failed to resize buffer. Requested: %u, available %u, missing: %u",
-        size, available_memory, size - available_memory);
-    return kTfLiteError;
-  }
+  do
+  {
+    if (resizable_buf != nullptr && resizable_buf != resizable_buffer_) {
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+      MicroPrintf(
+          "Failed to resize resizable memory (wrong address). Requested: %u, %u, %u",
+          resizable_buf, size, alignment);
+#endif
+      status = kTfLiteError;
+      break;
+    }
 
-  head_ = aligned_result + size;
-  head_max_ = std::max(head_max_, head_);
-  head_used_size_ = head_ - buffer_head_;
-  head_used_size_max_ = std::max(head_used_size_max_, head_used_size_);
+    if (!IsAllTempDeallocated()) {
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+      MicroPrintf(
+          "Failed to resize resizable memory (temporary buffer allocated). Requested: %u, %u, %u",
+          resizable_buf, size, alignment);
+#endif
+      status = kTfLiteError;
+      break;
+    }
 
-  temp_ = head_;
-  temp_max_ = std::max(temp_max_, temp_);
-  temp_used_size_ = temp_ - buffer_head_;
-  temp_used_size_max_ = std::max(temp_used_size_max_, temp_used_size_);
+    if (size == 0) {
+      if (resizable_buffer_size_ > 0) {
+        r = heap_free(NULL, resizable_buffer_);
+        ubi_assert(r == 0);
 
-  return kTfLiteOk;
+        resizable_buffer_size_ = 0;
+      }
+    }
+    else
+    {
+      if (resizable_buffer_size_ > 0) {
+        result = reinterpret_cast<uint8_t*>(heap_resize(NULL, resizable_buffer_, size)); // Use normal direction heap
+        if (result == nullptr) {
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+          MicroPrintf(
+              "Failed to resize resizable memory (resize fail). Requested: %u, %u",
+              size, alignment);
+#endif
+          status = kTfLiteError;
+          break;
+        }
+      }
+      else {
+        result = reinterpret_cast<uint8_t*>(heap_malloc(NULL, size, 0)); // Use normal direction heap
+        if (result == nullptr) {
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+          MicroPrintf(
+              "Failed to resize resizable memory (allocation fail). Requested: %u, %u",
+              size, alignment);
+#endif
+          status = kTfLiteError;
+          break;
+        }
+      }
+
+      if (result != AlignPointerUp(result, alignment)) {
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+        MicroPrintf(
+            "Failed to resize resizable memory (alignment fail). Requested: %u, %u",
+            size, alignment);
+#endif
+        r = heap_free(NULL, result);
+        ubi_assert(r == 0);
+        status = kTfLiteError;
+        break;
+      }
+
+      resizable_buffer_ = result;
+      resizable_buffer_size_ = size;
+    }
+
+    status = kTfLiteOk;
+    break;
+  } while (1);
+
+  return status;
 }
 
 TfLiteStatus tflite::UbiHeapBufferAllocator::ResetTempAllocations() {
-  // TODO(b/209453859): enable error check based on IsAllTempDeallocated after
-  // all AllocateTemp have been paird with DeallocateTemp
-  if (!IsAllTempDeallocated()) {
-    MicroPrintf(
-        "All temp buffers must be freed before calling ResetTempAllocations()");
-    return kTfLiteError;
+  int r;
+  void * first_ptr = heap_get_first_allocated_block(NULL, 0);
+  if (first_ptr != NULL) {
+    void * next_ptr = heap_get_next_allocated_block(NULL, first_ptr);
+    while (next_ptr != NULL)
+    {
+      r = heap_free(NULL, next_ptr);
+      ubi_assert(r == 0);
+      next_ptr = heap_get_next_allocated_block(NULL, first_ptr);
+    }
+    if (resizable_buffer_size_ == 0) {
+      r = heap_free(NULL, first_ptr);
+      ubi_assert(r == 0);
+    }
   }
-  temp_ = head_;
-  temp_max_ = std::max(temp_max_, temp_);
-  temp_used_size_ = temp_ - buffer_head_;
-  temp_used_size_max_ = std::max(temp_used_size_max_, temp_used_size_);
   return kTfLiteOk;
 }
 
 TfLiteStatus tflite::UbiHeapBufferAllocator::ReserveNonPersistentOverlayMemory(size_t size, size_t alignment) {
-  uint8_t* expect_resizable_buf = AlignPointerUp(buffer_head_, alignment);
-  return ResizeBuffer(expect_resizable_buf, size, alignment);
+  return ResizeBuffer(resizable_buffer_, size, alignment);
 }
 
 bool tflite::UbiHeapBufferAllocator::IsAllTempDeallocated() {
-  if (temp_buffer_count_ != 0 || temp_buffer_ptr_check_sum_ != 0) {
-    MicroPrintf(
-        "Number of allocated temp buffers: %d. Checksum passing status: %d",
-        temp_buffer_count_, !temp_buffer_ptr_check_sum_);
+  unsigned int count;
+  unsigned int ncount;
+  unsigned int rcount;
+  int r;
+
+  r = heap_getallocatedcount_ext(NULL, &count, &ncount, &rcount);
+  ubi_assert(r == 0);
+
+  if ((resizable_buffer_size_ == 0 && ncount == 0) || (resizable_buffer_size_ > 0 && ncount == 1)) {
+    return true;
+  }
+  else {
     return false;
   }
-  return true;
 }
 
 size_t tflite::UbiHeapBufferAllocator::GetUsedBytes() const {
@@ -102,34 +181,72 @@ size_t tflite::UbiHeapBufferAllocator::GetUsedBytesMax() const {
 }
 
 uint8_t* tflite::UbiHeapBufferAllocator::GetOverlayMemoryAddress() const {
-  return buffer_head_;
+  return resizable_buffer_;
 }
 
 size_t tflite::UbiHeapBufferAllocator::GetNonPersistentUsedBytes() const {
-  return std::max(head_ - buffer_head_, temp_ - buffer_head_);
+  int r;
+  unsigned int size;
+  unsigned int nsize;
+  unsigned int rsize;
+
+  r = heap_getrequestedsize_ext(NULL, &size, &nsize, &rsize);
+  ubi_assert(r == 0);
+
+  return reinterpret_cast<size_t>(nsize);
 }
 
 size_t tflite::UbiHeapBufferAllocator::GetNonPersistentUsedBytesMax() const {
-  return std::max(head_max_ - buffer_head_, temp_max_ - buffer_head_);
+  int r;
+  unsigned int size;
+  unsigned int nsize;
+  unsigned int rsize;
+
+  r = heap_getrequestedsizemax_ext(NULL, &size, &nsize, &rsize);
+  ubi_assert(r == 0);
+
+  return reinterpret_cast<size_t>(nsize);
 }
 
 size_t tflite::UbiHeapBufferAllocator::GetPersistentUsedBytes() const {
-  return buffer_tail_ - tail_;
+  int r;
+  unsigned int size;
+  unsigned int nsize;
+  unsigned int rsize;
+
+  r = heap_getrequestedsize_ext(NULL, &size, &nsize, &rsize);
+  ubi_assert(r == 0);
+
+  return reinterpret_cast<size_t>(rsize);
 }
 
 size_t tflite::UbiHeapBufferAllocator::GetPersistentUsedBytesMax() const {
-  return buffer_tail_ - tail_min_;
+  int r;
+  unsigned int size;
+  unsigned int nsize;
+  unsigned int rsize;
+
+  r = heap_getrequestedsizemax_ext(NULL, &size, &nsize, &rsize);
+  ubi_assert(r == 0);
+
+  return reinterpret_cast<size_t>(rsize);
 }
 
 size_t tflite::UbiHeapBufferAllocator::GetAvailableMemory(size_t alignment) const {
-  uint8_t* const aligned_temp = AlignPointerUp(temp_, alignment);
-  uint8_t* const aligned_tail = AlignPointerDown(tail_, alignment);
-  return aligned_tail - aligned_temp;
+  unsigned int size;
+  int r;
+
+  r = heap_getexpandablesize(NULL, &size);
+  ubi_assert(r == 0);
+
+  return reinterpret_cast<size_t>(size);
 }
 
 void tflite::UbiHeapBufferAllocator::DeallocateTemp(uint8_t* buf) {
-  temp_buffer_ptr_check_sum_ ^= (reinterpret_cast<intptr_t>(buf));
-  temp_buffer_count_--;
+  int r;
+
+  r = heap_free(NULL, buf);
+  ubi_assert(r == 0);
 }
 
 TfLiteStatus tflite::UbiHeapBufferAllocator::DeallocateResizableBuffer(uint8_t* resizable_buf) {
@@ -137,64 +254,64 @@ TfLiteStatus tflite::UbiHeapBufferAllocator::DeallocateResizableBuffer(uint8_t* 
 }
 
 uint8_t* tflite::UbiHeapBufferAllocator::AllocateTemp(size_t size, size_t alignment) {
-  uint8_t* const aligned_result = AlignPointerUp(temp_, alignment);
-  const size_t available_memory = tail_ - aligned_result;
-  if (available_memory < size) {
+  int r;
+  uint8_t* result = reinterpret_cast<uint8_t*>(heap_malloc(NULL, size, 0)); // Use normal direction heap
+  if (result == nullptr) {
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
     MicroPrintf(
-        "Failed to allocate temp memory. Requested: %u, "
-        "available %u, missing: %u",
-        size, available_memory, size - available_memory);
+        "Failed to allocate temporary memory (allocation fail). Requested: %u, %u",
+        size, alignment);
+#endif
     return nullptr;
   }
-  temp_ = aligned_result + size;
-  temp_max_ = std::max(temp_max_, temp_);
-  temp_used_size_ = temp_ - buffer_head_;
-  temp_used_size_max_ = std::max(temp_used_size_max_, temp_used_size_);
 
-  temp_buffer_ptr_check_sum_ ^= (reinterpret_cast<intptr_t>(aligned_result));
-  temp_buffer_count_++;
-  return aligned_result;
+  if (result != AlignPointerUp(result, alignment)) {
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+    MicroPrintf(
+        "Failed to align temporary memory (alignment fail). Requested: %u, %u",
+        size, alignment);
+#endif
+    r = heap_free(NULL, result);
+    ubi_assert(r == 0);
+    return nullptr;
+  }
+
+  return result;
 }
 
 uint8_t* tflite::UbiHeapBufferAllocator::AllocateResizableBuffer(size_t size, size_t alignment) {
-  // Only supports one resizable buffer, which starts at the buffer head.
-  uint8_t* expect_resizable_buf = AlignPointerUp(buffer_head_, alignment);
-  if (ResizeBuffer(expect_resizable_buf, size, alignment) == kTfLiteOk) {
-    return expect_resizable_buf;
+  if (ResizeBuffer(resizable_buffer_, size, alignment) == kTfLiteOk) {
+    return resizable_buffer_;
   }
   return nullptr;
 }
 
 uint8_t* tflite::UbiHeapBufferAllocator::AllocatePersistentBuffer(size_t size, size_t alignment) {
-  uint8_t* const aligned_result = AlignPointerDown(tail_ - size, alignment);
-  if (aligned_result < head_) {
+  int r;
+  uint8_t* result = reinterpret_cast<uint8_t*>(heap_malloc(NULL, size, 1)); // Use reverse direction heap
+  if (result == nullptr) {
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
-    const size_t missing_memory = head_ - aligned_result;
     MicroPrintf(
-        "Failed to allocate tail memory. Requested: %u, "
-        "available %u, missing: %u",
-        size, size - missing_memory, missing_memory);
+        "Failed to allocate persistent memory (allocation fail). Requested: %u, %u",
+        size, alignment);
 #endif
     return nullptr;
   }
-  tail_ = aligned_result;
-  tail_min_ = std::min(tail_min_, tail_);
-  tail_used_size_ = buffer_tail_ - tail_;
-  tail_used_size_max_ = std::max(tail_used_size_max_, tail_used_size_);
 
-  return aligned_result;
-}
+  if (result != AlignPointerDown(result, alignment)) {
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+    MicroPrintf(
+        "Failed to allocate persistent memory (alignment fail). Requested: %u, %u",
+        size, alignment);
+#endif
+    r = heap_free(NULL, result);
+    ubi_assert(r == 0);
+    return nullptr;
+  }
 
-uint8_t* tflite::UbiHeapBufferAllocator::head() const {
-    return head_;
-}
-
-uint8_t* tflite::UbiHeapBufferAllocator::tail() const {
-    return tail_;
-}
-
-size_t tflite::UbiHeapBufferAllocator::GetBufferSize() const {
-    return buffer_tail_ - buffer_head_;
+  return result;
 }
 
 }  // namespace tflite
+
+#endif /* defined(UBINOS_BSP_PRESENT) */

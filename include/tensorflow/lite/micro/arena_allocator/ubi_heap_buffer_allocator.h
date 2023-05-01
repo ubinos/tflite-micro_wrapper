@@ -13,6 +13,16 @@ namespace tflite {
 
     private:
         /**
+         * ubinos_lang_config {"init_value": nullptr}
+         */
+        uint8_t* resizable_buffer_ = nullptr;
+
+        /**
+         * ubinos_lang_config {"init_value": 0}
+         */
+        size_t resizable_buffer_size_ = 0;
+
+        /**
          * The combination of the checksum of outstanding temporary buffer pointers and the count of outstanding temporary buffer provide a low cost mechanism to audit temporary buffers' allocation and deallocation.
          * XOR Check sum for outstanding temp buffers.
          * If all temp buffers are deallocated or no temp buffers are allocated, temp_buffer_ptr_check_sum_ == nullptr.
