@@ -1,5 +1,9 @@
 #if defined(UBINOS_BSP_PRESENT)
 
+#include <ubinos_config.h>
+
+#if (INCLUDE__UBINOS__UBICLIB == 1) && (UBINOS__UBICLIB__EXCLUDE_HEAP_DMPM != 1)
+
 #include <ubinos.h>
 #include <ubinos/ubiclib/heap.h>
 
@@ -313,5 +317,7 @@ uint8_t* tflite::UbiHeapBufferAllocator::AllocatePersistentBuffer(size_t size, s
 }
 
 }  // namespace tflite
+
+#endif /* (INCLUDE__UBINOS__UBICLIB == 1) && (UBINOS__UBICLIB__EXCLUDE_HEAP_DMPM != 1) */
 
 #endif /* defined(UBINOS_BSP_PRESENT) */
