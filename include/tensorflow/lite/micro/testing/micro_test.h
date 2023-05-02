@@ -51,6 +51,11 @@ limitations under the License.
 
 #ifndef TENSORFLOW_LITE_MICRO_TESTING_MICRO_TEST_H_
 #define TENSORFLOW_LITE_MICRO_TESTING_MICRO_TEST_H_
+
+#if defined(UBINOS_BSP_PRESENT)
+#include <ubinos.h>
+#endif /* !defined(UBINOS_BSP_PRESENT) */
+
 #include <limits>
 #include <type_traits>
 
@@ -78,6 +83,20 @@ namespace tflite {
 inline void InitializeTest() { InitializeTarget(); }
 }  // namespace tflite
 
+#if defined(UBINOS_BSP_PRESENT)
+#define TF_LITE_MICRO_TESTS_BEGIN   \
+  namespace micro_test {            \
+  int tests_passed;                 \
+  int tests_failed;                 \
+  bool is_test_complete;            \
+  bool did_test_fail;               \
+  }                                 \
+                                    \
+  int appmain(int argc, char** argv) { \
+    micro_test::tests_passed = 0;   \
+    micro_test::tests_failed = 0;   \
+    tflite::InitializeTest();
+#else /* !defined(UBINOS_BSP_PRESENT) */
 #define TF_LITE_MICRO_TESTS_BEGIN   \
   namespace micro_test {            \
   int tests_passed;                 \
@@ -90,6 +109,7 @@ inline void InitializeTest() { InitializeTarget(); }
     micro_test::tests_passed = 0;   \
     micro_test::tests_failed = 0;   \
     tflite::InitializeTest();
+#endif /* !defined(UBINOS_BSP_PRESENT) */
 
 #define TF_LITE_MICRO_TESTS_END                                       \
   MicroPrintf("%d/%d tests passed", micro_test::tests_passed,         \
