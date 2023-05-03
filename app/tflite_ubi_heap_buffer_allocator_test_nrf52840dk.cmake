@@ -60,6 +60,8 @@ set_cache(NRF5SDK__NRFX_POWER_ENABLED FALSE BOOL)
 # set_cache(NRF5SDK__UART_ENABLED TRUE BOOL)
 # set_cache(NRF5SDK__NRFX_UARTE0_ENABLED TRUE BOOL)
 
+# set_cache(UBINOS__BSP__STACK_SIZE 0x8000 STRING)
+
 include(${PROJECT_UBINOS_DIR}/config/ubinos_nrf52840dk.cmake)
 include(${PROJECT_LIBRARY_DIR}/CMSIS_5_wrapper/config/cmsis_5.cmake)
 include(${PROJECT_LIBRARY_DIR}/seggerrtt_wrapper/config/seggerrtt.cmake)
