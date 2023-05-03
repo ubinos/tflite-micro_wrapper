@@ -59,6 +59,14 @@ UbiHeapMicroAllocator* tflite::UbiHeapMicroAllocator::Create(UbiHeapBufferAlloca
   return allocator;
 }
 
+size_t tflite::UbiHeapMicroAllocator::GetDefaultTailUsage(bool is_memory_planner_given) {
+  size_t total_size = MicroAllocator::GetDefaultTailUsage(is_memory_planner_given) -
+                            AlignSizeUp<SingleArenaBufferAllocator>() -
+                            AlignSizeUp<MicroAllocator>() +
+                            AlignSizeUp<UbiHeapBufferAllocator>() +
+                            AlignSizeUp<UbiHeapMicroAllocator>();
+  return total_size;
+}
 
 tflite::UbiHeapMicroAllocator::UbiHeapMicroAllocator(IPersistentBufferAllocator* persistent_buffer_allocator, INonPersistentBufferAllocator* non_persistent_buffer_allocator, MicroMemoryPlanner* memory_planner)
     : MicroAllocator(persistent_buffer_allocator, non_persistent_buffer_allocator, memory_planner) {
