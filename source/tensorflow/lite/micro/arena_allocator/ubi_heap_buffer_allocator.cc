@@ -243,7 +243,7 @@ size_t tflite::UbiHeapBufferAllocator::GetAvailableMemory(size_t alignment) cons
   r = heap_getexpandablesize(NULL, &size);
   ubi_assert(r == 0);
 
-  return reinterpret_cast<size_t>(size);
+  return reinterpret_cast<size_t>(size - heap_get_block_overhead(NULL) - sizeof(int));
 }
 
 void tflite::UbiHeapBufferAllocator::DeallocateTemp(uint8_t* buf) {
