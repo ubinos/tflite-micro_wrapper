@@ -17,6 +17,7 @@ set_cache_default(TFLITE_MICRO__TF_LITE_DISABLE_X86_NEON TRUE BOOL "Disable x86 
 set_cache_default(TFLITE_MICRO__TF_LITE_STATIC_MEMORY TRUE BOOL "Use TFLite staic memory")
 set_cache_default(TFLITE_MICRO__TF_LITE_MCU_DEBUG_LOG TRUE BOOL "Use TFLite MCU debug log")
 set_cache_default(TFLITE_MICRO__TF_LITE_USE_CTIME FALSE BOOL "Use TFLite CTime")
+set_cache_default(TFLITE_MICRO__TF_LITE_SHOW_MEMORY_USE FALSE BOOL "Use TFLite show memory use")
 
 set_cache_default(TFLITE_MICRO__INCLUDE_CMSIS_NN TRUE BOOL "Include ARM CMSIS NN")
 

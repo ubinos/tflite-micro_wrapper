@@ -23,18 +23,24 @@ namespace tflite {
         size_t resizable_buffer_size_ = 0;
 
         /**
-         * The combination of the checksum of outstanding temporary buffer pointers and the count of outstanding temporary buffer provide a low cost mechanism to audit temporary buffers' allocation and deallocation.
-         * XOR Check sum for outstanding temp buffers.
-         * If all temp buffers are deallocated or no temp buffers are allocated, temp_buffer_ptr_check_sum_ == nullptr.
-         *
          * ubinos_lang_config {"init_value": 0}
          */
-        intptr_t temp_buffer_ptr_check_sum_ = 0;
+        size_t temp_buffer_size_ = 0;
 
         /**
          * ubinos_lang_config {"init_value": 0}
          */
-        int temp_buffer_count_ = 0;
+        size_t nonpersistent_buffer_size_max_ = 0;
+
+        /**
+         * ubinos_lang_config {"init_value": 0}
+         */
+        size_t persistent_buffer_size_ = 0;
+
+        /**
+         * ubinos_lang_config {"init_value": 0}
+         */
+        size_t persistent_buffer_size_max_ = 0;
 
     public:
         UbiHeapBufferAllocator();
@@ -68,6 +74,11 @@ namespace tflite {
          * ubinos_lang_config {"override": true}
          */
         virtual TfLiteStatus ResetTempAllocations() override;
+
+        /**
+         * Signals that all persistent allocations can be reclaimed.
+         */
+        virtual TfLiteStatus ResetPersistentAllocations();
 
         /**
          * Reserves the size of the overlay memory.
