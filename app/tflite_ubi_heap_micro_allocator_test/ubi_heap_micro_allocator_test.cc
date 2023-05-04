@@ -138,12 +138,13 @@ void VerifyRegistrationAndNodeAllocation(
 size_t GetArenaUsedBytesBySimpleMockModel(bool is_memory_planner_injected) {
   const int tensor_count = 4;
   const int node_count = 2;
-  size_t eval_tensor_size = AlignSizeUp<TfLiteEvalTensor>(tensor_count);
-  size_t node_registration_size = AlignSizeUp<NodeAndRegistration>(node_count);
+  int alignment = MicroArenaBufferAlignment();
+  size_t eval_tensor_size = AlignSizeUp(AlignSizeUp<TfLiteEvalTensor>(1), alignment) * tensor_count;
+  size_t node_registration_size = AlignSizeUp(AlignSizeUp<NodeAndRegistration>(1), alignment) * node_count;
 
   const int activation_tensor_count = 3;
   size_t activation_tensor_buffer =
-      activation_tensor_count * AlignSizeUp(1, MicroArenaBufferAlignment());
+      activation_tensor_count * AlignSizeUp(1, alignment);
 
   size_t default_tail_usage =
       UbiHeapMicroAllocator::GetDefaultTailUsage(/*is_memory_plan_given=*/false);
@@ -182,7 +183,7 @@ TF_LITE_MICRO_TEST(TestInitializeRuntimeTensor) {
   TF_LITE_MICRO_EXPECT(nullptr == allocated_tensor.data.i32);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteArenaRw, allocated_tensor.allocation_type);
 
-  simple_allocator->~UbiHeapBufferAllocator();
+  delete simple_allocator;
 }
 
 // TODO(b/162311891): Drop this test when InitializeTfLiteTensorFromFlatbuffer()
@@ -209,7 +210,7 @@ TF_LITE_MICRO_TEST(TestInitializeTempRuntimeTensor) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteArenaRw,
                           allocated_temp_tensor.allocation_type);
 
-  simple_allocator->~UbiHeapBufferAllocator();
+  delete simple_allocator;
 }
 
 TF_LITE_MICRO_TEST(TestInitializeQuantizedTensor) {
@@ -233,7 +234,7 @@ TF_LITE_MICRO_TEST(TestInitializeQuantizedTensor) {
   TF_LITE_MICRO_EXPECT(nullptr == allocated_tensor.data.i32);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteArenaRw, allocated_tensor.allocation_type);
 
-  simple_allocator->~UbiHeapBufferAllocator();
+  delete simple_allocator;
 }
 
 TF_LITE_MICRO_TEST(TestMissingQuantization) {
@@ -256,7 +257,7 @@ TF_LITE_MICRO_TEST(TestMissingQuantization) {
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(400), allocated_tensor.bytes);
   TF_LITE_MICRO_EXPECT(nullptr == allocated_tensor.data.i32);
 
-  simple_allocator->~UbiHeapBufferAllocator();
+  delete simple_allocator;
 }
 
 TF_LITE_MICRO_TEST(TestFailsWhenModelStartsTwice) {
@@ -268,7 +269,8 @@ TF_LITE_MICRO_TEST(TestFailsWhenModelStartsTwice) {
   TF_LITE_MICRO_EXPECT(nullptr != allocator->StartModelAllocation(model));
   TF_LITE_MICRO_EXPECT(nullptr == allocator->StartModelAllocation(model));
 
-  simple_allocator->~UbiHeapBufferAllocator();
+  delete allocator;
+  delete simple_allocator;
 }
 
 TF_LITE_MICRO_TEST(TestFailsWithWrongSequence) {
@@ -289,7 +291,8 @@ TF_LITE_MICRO_TEST(TestFailsWithWrongSequence) {
   TF_LITE_MICRO_EXPECT(nullptr != allocator->StartModelAllocation(model));
   TF_LITE_MICRO_EXPECT(nullptr == allocator->StartModelAllocation(model));
 
-  simple_allocator->~UbiHeapBufferAllocator();
+  delete allocator;
+  delete simple_allocator;
 }
 
 TF_LITE_MICRO_TEST(TestMockModelAllocation) {
@@ -335,7 +338,8 @@ TF_LITE_MICRO_TEST(TestMockModelAllocation) {
                                                        /*count=*/2,
                                                        /*num_subgraphs=*/1);
 
-  simple_allocator->~UbiHeapBufferAllocator();
+  delete allocator;
+  delete simple_allocator;
 }
 
 // TF_LITE_MICRO_TEST(TestMockModelAllocationInTwoSeparateArenas) {
@@ -425,7 +429,8 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationWithGivenMemoryPlanner) {
                                                        /*count=*/2,
                                                        /*num_subgraphs=*/1);
 
-  simple_allocator->~UbiHeapBufferAllocator();
+  delete allocator;
+  delete simple_allocator;
 }
 
 TF_LITE_MICRO_TEST(TestMultiTenantAllocation) {
@@ -464,7 +469,8 @@ TF_LITE_MICRO_TEST(TestMultiTenantAllocation) {
   // of the arena is reused.
   TF_LITE_MICRO_EXPECT_LE(allocator->used_bytes(), 2 * single_model_used_bytes);
 
-  simple_allocator->~UbiHeapBufferAllocator();
+  delete allocator;
+  delete simple_allocator;
 }
 
 // TF_LITE_MICRO_TEST(TestMultiTenantAllocationInTwoSeparateArenas) {

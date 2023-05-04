@@ -31,49 +31,36 @@
 
 namespace tflite {
 
-UbiHeapMicroAllocator* tflite::UbiHeapMicroAllocator::Create(UbiHeapBufferAllocator* memory_allocator, MicroMemoryPlanner* memory_planner) {
-  TFLITE_DCHECK(memory_allocator != nullptr);
-  TFLITE_DCHECK(memory_planner != nullptr);
-
-  uint8_t* allocator_buffer = memory_allocator->AllocatePersistentBuffer(
-      sizeof(UbiHeapMicroAllocator), alignof(UbiHeapMicroAllocator));
-  UbiHeapMicroAllocator* allocator = new (allocator_buffer)
-      UbiHeapMicroAllocator(memory_allocator, memory_allocator, memory_planner);
-
-  return allocator;
-}
-
-UbiHeapMicroAllocator* tflite::UbiHeapMicroAllocator::Create(UbiHeapBufferAllocator* memory_allocator) {
-  TFLITE_DCHECK(memory_allocator != nullptr);
-
-  uint8_t* memory_planner_buffer = memory_allocator->AllocatePersistentBuffer(
-      sizeof(GreedyMemoryPlanner), alignof(GreedyMemoryPlanner));
-  GreedyMemoryPlanner* memory_planner =
-      new (memory_planner_buffer) GreedyMemoryPlanner();
-
-  uint8_t* allocator_buffer = memory_allocator->AllocatePersistentBuffer(
-      sizeof(UbiHeapMicroAllocator), alignof(UbiHeapMicroAllocator));
-  UbiHeapMicroAllocator* allocator = new (allocator_buffer)
-      UbiHeapMicroAllocator(memory_allocator, memory_allocator, memory_planner);
-
-  return allocator;
-}
-
-size_t tflite::UbiHeapMicroAllocator::GetDefaultTailUsage(bool is_memory_planner_given) {
-  size_t total_size = MicroAllocator::GetDefaultTailUsage(is_memory_planner_given) -
-                            AlignSizeUp<SingleArenaBufferAllocator>() -
-                            AlignSizeUp<MicroAllocator>() +
-                            AlignSizeUp<UbiHeapBufferAllocator>() +
-                            AlignSizeUp<UbiHeapMicroAllocator>();
-  return total_size;
-}
-
 tflite::UbiHeapMicroAllocator::UbiHeapMicroAllocator(IPersistentBufferAllocator* persistent_buffer_allocator, INonPersistentBufferAllocator* non_persistent_buffer_allocator, MicroMemoryPlanner* memory_planner)
     : MicroAllocator(persistent_buffer_allocator, non_persistent_buffer_allocator, memory_planner) {
 }
 
 tflite::UbiHeapMicroAllocator::UbiHeapMicroAllocator(UbiHeapBufferAllocator* memory_allocator, MicroMemoryPlanner* memory_planner)
     : MicroAllocator(memory_allocator, memory_allocator, memory_planner) {
+}
+
+tflite::UbiHeapMicroAllocator::UbiHeapMicroAllocator(UbiHeapBufferAllocator* memory_allocator)
+    : MicroAllocator(memory_allocator, memory_allocator, &default_memory_planner_) {
+}
+
+tflite::UbiHeapMicroAllocator::~UbiHeapMicroAllocator() {
+}
+
+UbiHeapMicroAllocator* tflite::UbiHeapMicroAllocator::Create(UbiHeapBufferAllocator* memory_allocator, MicroMemoryPlanner* memory_planner) {
+  TFLITE_DCHECK(memory_allocator != nullptr);
+  TFLITE_DCHECK(memory_planner != nullptr);
+
+  return new UbiHeapMicroAllocator(memory_allocator, memory_allocator, memory_planner);
+}
+
+UbiHeapMicroAllocator* tflite::UbiHeapMicroAllocator::Create(UbiHeapBufferAllocator* memory_allocator) {
+  TFLITE_DCHECK(memory_allocator != nullptr);
+
+  return new UbiHeapMicroAllocator(memory_allocator);
+}
+
+size_t tflite::UbiHeapMicroAllocator::GetDefaultTailUsage(bool is_memory_planner_given) {
+  return 0;
 }
 
 }  // namespace tflite

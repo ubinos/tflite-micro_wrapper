@@ -41,15 +41,7 @@ tflite::UbiHeapBufferAllocator::~UbiHeapBufferAllocator() {
 }
 
 tflite::UbiHeapBufferAllocator* tflite::UbiHeapBufferAllocator::Create() {
-  UbiHeapBufferAllocator tmp = UbiHeapBufferAllocator();
-
-  // Allocate enough bytes from the buffer to create a
-  // UbiHeapBufferAllocator. The new instance will use the current adjusted
-  // tail buffer from the tmp allocator instance.
-  uint8_t* allocator_buffer = tmp.AllocatePersistentBuffer(
-      sizeof(UbiHeapBufferAllocator), alignof(UbiHeapBufferAllocator));
-  // Use the default copy constructor to populate internal states.
-  return new (allocator_buffer) UbiHeapBufferAllocator(tmp);
+  return new UbiHeapBufferAllocator();
 }
 
 size_t tflite::UbiHeapBufferAllocator::GetUsedBytes() const {
