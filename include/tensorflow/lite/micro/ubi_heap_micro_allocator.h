@@ -37,8 +37,18 @@ namespace tflite {
          */
         static size_t GetDefaultTailUsage(bool is_memory_planner_given);
 
+        /**
+         * Returns a pointer pointing to the start of the overlay memory, which is used for activation tensors and scratch buffers by kernels at Invoke stage.
+         */
+        virtual uint8_t* GetOverlayMemoryAddress() const;
+
     private:
         GreedyMemoryPlanner default_memory_planner_;
+
+        /**
+         * ubinos_lang_config {"init_value": nullptr}
+         */
+        INonPersistentBufferAllocator* non_persistent_heap_buffer_allocator_ = nullptr;
     };
 }
 
