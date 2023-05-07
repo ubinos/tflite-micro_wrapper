@@ -91,6 +91,12 @@
 	make -f makefile.mk $@ CONFIG_DIR=../app CONFIG_NAME=tflite_ubi_heap_micro_allocator_test_nrf52840dk
 	@echo ""
 	@echo ""
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+	@echo ""
+	@echo ""
+	make -f makefile.mk $@ CONFIG_DIR=../app CONFIG_NAME=tflite_ubi_heap_micro_interpreter_test_nrf52840dk
+	@echo ""
+	@echo ""
 
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo ""
