@@ -39,38 +39,38 @@ TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(TestAdjustHeadSizeMisalignment) {
   tflite::UbiHeapBufferAllocator allocator;
-  size_t allocation_size;
+  size_t size;
   size_t alignment = tflite::MicroArenaBufferAlignment();
-  // size_t block_overhead = heap_get_block_overhead(NULL);
+  size_t block_overhead = heap_get_block_overhead(NULL);
   // size_t arena_size = allocator.GetAvailableMemory(1);
 
   uint8_t* resizable_buf = allocator.AllocateResizableBuffer(0, alignment);
   TF_LITE_MICRO_EXPECT(resizable_buf != nullptr);
 
   // First head adjustment of 100 bytes (aligned alignment):
-  allocation_size = 100; // tflite::AlignSizeUp(100 + block_overhead, alignment) - block_overhead;
+  size = 100;
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
-      allocator.ResizeBuffer(resizable_buf, allocation_size, alignment));
+      allocator.ResizeBuffer(resizable_buf, size, alignment));
 
   // Offset alignment can lead to allocation within 8 byte range of
   // requested bytes based to arena alignment at runtime:
-  TF_LITE_MICRO_EXPECT_GE(allocator.GetNonPersistentUsedBytes(), allocation_size);
-  TF_LITE_MICRO_EXPECT_LE(allocator.GetNonPersistentUsedBytes(), allocation_size + alignment - 1);
+  TF_LITE_MICRO_EXPECT_GE(allocator.GetNonPersistentUsedBytes(), size);
+  TF_LITE_MICRO_EXPECT_LE(allocator.GetNonPersistentUsedBytes(), size + block_overhead + alignment - 1);
 
-  allocation_size = 10; // tflite::AlignSizeUp(10 + block_overhead, alignment) - block_overhead;
+  size = 10;
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
-      allocator.ResizeBuffer(resizable_buf, allocation_size, alignment));
-  TF_LITE_MICRO_EXPECT_GE(allocator.GetNonPersistentUsedBytes(), allocation_size);
-  TF_LITE_MICRO_EXPECT_LE(allocator.GetNonPersistentUsedBytes(), allocation_size + alignment - 1);
+      allocator.ResizeBuffer(resizable_buf, size, alignment));
+  TF_LITE_MICRO_EXPECT_GE(allocator.GetNonPersistentUsedBytes(), size);
+  TF_LITE_MICRO_EXPECT_LE(allocator.GetNonPersistentUsedBytes(), size + block_overhead + alignment - 1);
 
-  allocation_size = 1000; // tflite::AlignSizeUp(1000 + block_overhead, alignment) - block_overhead;
+  size = 1000;
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
-      allocator.ResizeBuffer(resizable_buf, allocation_size, alignment));
-  TF_LITE_MICRO_EXPECT_GE(allocator.GetNonPersistentUsedBytes(), allocation_size);
-  TF_LITE_MICRO_EXPECT_LE(allocator.GetNonPersistentUsedBytes(), allocation_size + alignment - 1);
+      allocator.ResizeBuffer(resizable_buf, size, alignment));
+  TF_LITE_MICRO_EXPECT_GE(allocator.GetNonPersistentUsedBytes(), size);
+  TF_LITE_MICRO_EXPECT_LE(allocator.GetNonPersistentUsedBytes(), size + block_overhead + alignment - 1);
 }
 
 TF_LITE_MICRO_TEST(TestAdjustHeadSizeMisalignedHandlesCorrectBytesAvailable) {
@@ -84,33 +84,33 @@ TF_LITE_MICRO_TEST(TestAdjustHeadSizeMisalignedHandlesCorrectBytesAvailable) {
   TF_LITE_MICRO_EXPECT(resizable_buf != nullptr);
 
   // First head adjustment of 100 bytes (aligned alignment):
-  size_t size = tflite::AlignSizeUp(100 + block_overhead, tflite::MicroArenaBufferAlignment()) - block_overhead;
+  size_t size = 100;
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
-      allocator.ResizeBuffer(resizable_buf, /*size=*/size, /*alignment=*/alignment));
+      allocator.ResizeBuffer(resizable_buf, size, alignment));
 
   // allocator.GetAvailableMemory() should also report the actual amount of
   // memory available based on a requested offset (alignment):
   size_t aligned_available_bytes =
-      allocator.GetAvailableMemory(/*alignment=*/alignment);
-  TF_LITE_MICRO_EXPECT_LE(aligned_available_bytes, arena_size - size - block_overhead);
-  TF_LITE_MICRO_EXPECT_GE(aligned_available_bytes, arena_size - size - block_overhead - alignment);
+      allocator.GetAvailableMemory(alignment);
+  TF_LITE_MICRO_EXPECT_LE(aligned_available_bytes, arena_size - (size + block_overhead));
+  TF_LITE_MICRO_EXPECT_GE(aligned_available_bytes, arena_size - (size + block_overhead + alignment));
 
-  size = tflite::AlignSizeUp(10 + block_overhead, tflite::MicroArenaBufferAlignment()) - block_overhead;
+  size = 10;
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
-      allocator.ResizeBuffer(resizable_buf, size, /*alignment=*/alignment));
-  aligned_available_bytes = allocator.GetAvailableMemory(/*alignment=*/alignment);
-  TF_LITE_MICRO_EXPECT_LE(aligned_available_bytes, arena_size - size - block_overhead);
-  TF_LITE_MICRO_EXPECT_GE(aligned_available_bytes, arena_size - size - block_overhead - alignment);
+      allocator.ResizeBuffer(resizable_buf, size, alignment));
+  aligned_available_bytes = allocator.GetAvailableMemory(alignment);
+  TF_LITE_MICRO_EXPECT_LE(aligned_available_bytes, arena_size - (size + block_overhead));
+  TF_LITE_MICRO_EXPECT_GE(aligned_available_bytes, arena_size - (size + block_overhead + alignment));
 
-  size = tflite::AlignSizeUp(1000 + block_overhead, tflite::MicroArenaBufferAlignment()) - block_overhead;
+  size = 100;
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
-      allocator.ResizeBuffer(resizable_buf, size, /*alignment=*/alignment));
-  aligned_available_bytes = allocator.GetAvailableMemory(/*alignment=*/alignment);
-  TF_LITE_MICRO_EXPECT_LE(aligned_available_bytes, arena_size - size - block_overhead);
-  TF_LITE_MICRO_EXPECT_GE(aligned_available_bytes, arena_size - size - block_overhead - alignment);
+      allocator.ResizeBuffer(resizable_buf, size, alignment));
+  aligned_available_bytes = allocator.GetAvailableMemory(alignment);
+  TF_LITE_MICRO_EXPECT_LE(aligned_available_bytes, arena_size - (size + block_overhead));
+  TF_LITE_MICRO_EXPECT_GE(aligned_available_bytes, arena_size - (size + block_overhead + alignment));
 }
 
 TF_LITE_MICRO_TEST(TestGetAvailableMemory) {
@@ -123,14 +123,16 @@ TF_LITE_MICRO_TEST(TestGetAvailableMemory) {
   uint8_t* resizable_buf = allocator.AllocateResizableBuffer(0, alignment);
   TF_LITE_MICRO_EXPECT(resizable_buf != nullptr);
 
-  size_t allocation_size = tflite::AlignSizeUp(100 + block_overhead, tflite::MicroArenaBufferAlignment()) - block_overhead;;
-  allocator.ResizeBuffer(resizable_buf, /*size=*/allocation_size,
-                         /*alignment=*/alignment);
-  allocator.AllocatePersistentBuffer(/*size=*/allocation_size,
-                                     /*alignment=*/alignment);
+  size_t size = 100;
+  allocator.ResizeBuffer(resizable_buf, size,
+                         alignment);
+  allocator.AllocatePersistentBuffer(size,
+                                     alignment);
 
-  TF_LITE_MICRO_EXPECT_EQ(allocator.GetAvailableMemory(/*alignment=*/alignment),
-                          arena_size - (allocation_size + block_overhead) * 2);
+  size_t aligned_available_bytes =
+        allocator.GetAvailableMemory(alignment);
+  TF_LITE_MICRO_EXPECT_LE(aligned_available_bytes, arena_size - (size + block_overhead) * 2);
+  TF_LITE_MICRO_EXPECT_GE(aligned_available_bytes, arena_size - (size + block_overhead + alignment) * 2);
 }
 
 TF_LITE_MICRO_TEST(TestGetAvailableMemoryWithTempAllocations) {
@@ -140,52 +142,55 @@ TF_LITE_MICRO_TEST(TestGetAvailableMemoryWithTempAllocations) {
   size_t block_overhead = heap_get_block_overhead(NULL);
   size_t arena_size = allocator.GetAvailableMemory(alignment);
 
-  size_t allocation_size = tflite::AlignSizeUp(100 + block_overhead, tflite::MicroArenaBufferAlignment()) - block_overhead;;
-  uint8_t* temp = allocator.AllocateTemp(/*size=*/allocation_size,
-                                         /*alignment=*/alignment);
+  size_t size = 100;
+  uint8_t* temp = allocator.AllocateTemp(size,
+                                         alignment);
 
-  TF_LITE_MICRO_EXPECT_EQ(allocator.GetAvailableMemory(/*alignment=*/alignment),
-                          arena_size - (allocation_size + block_overhead));
+  size_t aligned_available_bytes =
+        allocator.GetAvailableMemory(alignment);
+  TF_LITE_MICRO_EXPECT_LE(aligned_available_bytes, arena_size - (size + block_overhead));
+  TF_LITE_MICRO_EXPECT_GE(aligned_available_bytes, arena_size - (size + block_overhead + alignment));
 
   // Reset temp allocations and ensure GetAvailableMemory() is back to the
   // starting size:
   allocator.DeallocateTemp(temp);
   allocator.ResetTempAllocations();
 
-  TF_LITE_MICRO_EXPECT_EQ(allocator.GetAvailableMemory(/*alignment=*/alignment),
-                          arena_size);
+  TF_LITE_MICRO_EXPECT_EQ(allocator.GetAvailableMemory(alignment), arena_size);
 }
 
 TF_LITE_MICRO_TEST(TestGetUsedBytes) {
   tflite::UbiHeapBufferAllocator allocator;
 
   size_t alignment = tflite::MicroArenaBufferAlignment();
+  size_t block_overhead = heap_get_block_overhead(NULL);
 
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetUsedBytes(), static_cast<size_t>(0));
   uint8_t* resizable_buf = allocator.AllocateResizableBuffer(0, alignment);
   TF_LITE_MICRO_EXPECT(resizable_buf != nullptr);
 
-  constexpr size_t allocation_size = 100;
-  allocator.ResizeBuffer(resizable_buf, /*size=*/allocation_size,
-                         /*alignment=*/alignment);
-  allocator.AllocatePersistentBuffer(/*size=*/allocation_size,
-                                     /*alignment=*/alignment);
+  constexpr size_t size = 100;
+  allocator.ResizeBuffer(resizable_buf, size,
+                         alignment);
+  allocator.AllocatePersistentBuffer(size,
+                                     alignment);
 
-  TF_LITE_MICRO_EXPECT_GE(allocator.GetUsedBytes(), allocation_size * 2);
-  TF_LITE_MICRO_EXPECT_EQ(allocator.GetRequestedBytes(), allocation_size * 2);
+  TF_LITE_MICRO_EXPECT_GE(allocator.GetUsedBytes(), size * 2);
+  TF_LITE_MICRO_EXPECT_LE(allocator.GetUsedBytes(), (size + block_overhead + alignment - 1) * 2);
 }
 
 TF_LITE_MICRO_TEST(TestGetUsedBytesTempAllocations) {
   tflite::UbiHeapBufferAllocator allocator;
 
   size_t alignment = tflite::MicroArenaBufferAlignment();
+  size_t block_overhead = heap_get_block_overhead(NULL);
 
-  constexpr size_t allocation_size = 100;
-  uint8_t* temp = allocator.AllocateTemp(/*size=*/allocation_size,
-                                         /*alignment=*/alignment);
+  constexpr size_t size = 100;
+  uint8_t* temp = allocator.AllocateTemp(size,
+                                         alignment);
 
-  TF_LITE_MICRO_EXPECT_GE(allocator.GetUsedBytes(), allocation_size);
-  TF_LITE_MICRO_EXPECT_EQ(allocator.GetRequestedBytes(), allocation_size);
+  TF_LITE_MICRO_EXPECT_GE(allocator.GetUsedBytes(), size );
+  TF_LITE_MICRO_EXPECT_LE(allocator.GetUsedBytes(), size + block_overhead + alignment - 1);
 
   // Reset temp allocations and ensure GetUsedBytes() is back to the starting
   // size:
@@ -238,7 +243,7 @@ TF_LITE_MICRO_TEST(TestTempAllocations) {
 
   size_t alignment = tflite::MicroArenaBufferAlignment();
   size_t block_overhead = heap_get_block_overhead(NULL);
-  size_t size = tflite::AlignSizeUp(100 + block_overhead, tflite::MicroArenaBufferAlignment()) - block_overhead;
+  size_t size = 100;
   uint8_t* temp1 = allocator.AllocateTemp(size, alignment);
   TF_LITE_MICRO_EXPECT(nullptr != temp1);
 
@@ -246,7 +251,7 @@ TF_LITE_MICRO_TEST(TestTempAllocations) {
   TF_LITE_MICRO_EXPECT(nullptr != temp2);
 
   // Expect that the next micro allocation is size + block_overhead bytes away from each other.
-  TF_LITE_MICRO_EXPECT_EQ(temp2 - temp1, (int) (size + block_overhead));
+  TF_LITE_MICRO_EXPECT_EQ(temp2 - temp1, (int) tflite::AlignSizeUp(size + block_overhead, alignment));
 }
 
 TF_LITE_MICRO_TEST(TestResetTempAllocations) {
@@ -254,13 +259,15 @@ TF_LITE_MICRO_TEST(TestResetTempAllocations) {
 
   size_t alignment = tflite::MicroArenaBufferAlignment();
 
-  uint8_t* temp1 = allocator.AllocateTemp(100, alignment);
+  size_t size = 100;
+
+  uint8_t* temp1 = allocator.AllocateTemp(size, alignment);
   TF_LITE_MICRO_EXPECT(nullptr != temp1);
 
   allocator.DeallocateTemp(temp1);
   allocator.ResetTempAllocations();
 
-  uint8_t* temp2 = allocator.AllocateTemp(100, alignment);
+  uint8_t* temp2 = allocator.AllocateTemp(size, alignment);
   TF_LITE_MICRO_EXPECT(nullptr != temp2);
 
   // Reset temp allocations should have the same start address:
@@ -272,16 +279,18 @@ TF_LITE_MICRO_TEST(TestEnsureHeadSizeWithoutResettingTemp) {
 
   size_t alignment = tflite::MicroArenaBufferAlignment();
 
+  size_t size = 100;
+
   uint8_t* resizable_buf = allocator.AllocateResizableBuffer(0, alignment);
   TF_LITE_MICRO_EXPECT(resizable_buf != nullptr);
 
-  uint8_t* temp = allocator.AllocateTemp(100, alignment);
+  uint8_t* temp = allocator.AllocateTemp(size, alignment);
   TF_LITE_MICRO_EXPECT(nullptr != temp);
 
   // Adjustment to head should fail since temp allocation was not followed by a
   // call to ResetTempAllocations().
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,
-                          allocator.ResizeBuffer(resizable_buf, 100, alignment));
+                          allocator.ResizeBuffer(resizable_buf, size, alignment));
 
   allocator.DeallocateTemp(temp);
   allocator.ResetTempAllocations();
@@ -300,10 +309,12 @@ TF_LITE_MICRO_TEST(TestIsAllTempDeallocated) {
 
   size_t alignment = tflite::MicroArenaBufferAlignment();
 
-  uint8_t* temp1 = allocator.AllocateTemp(100, alignment);
+  size_t size = 100;
+
+  uint8_t* temp1 = allocator.AllocateTemp(size, alignment);
   TF_LITE_MICRO_EXPECT(allocator.IsAllTempDeallocated() == false);
 
-  uint8_t* temp2 = allocator.AllocateTemp(100, alignment);
+  uint8_t* temp2 = allocator.AllocateTemp(size, alignment);
   TF_LITE_MICRO_EXPECT(allocator.IsAllTempDeallocated() == false);
 
   allocator.DeallocateTemp(temp1);

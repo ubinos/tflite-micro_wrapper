@@ -108,7 +108,7 @@ uint8_t* tflite::UbiHeapBufferAllocator::GetOverlayMemoryAddress() const {
 TfLiteStatus tflite::UbiHeapBufferAllocator::ResizeBuffer(uint8_t* resizable_buf, size_t size, size_t alignment) {
   TfLiteStatus status;
   uint8_t* result;
-  unsigned int usable_size, requested_size;
+  unsigned int allocated_size, requested_size;
   int r;
 
   do
@@ -184,13 +184,13 @@ TfLiteStatus tflite::UbiHeapBufferAllocator::ResizeBuffer(uint8_t* resizable_buf
       r = heap_set_flag(NULL, result, HEAP_FLAG_NO__TFL_RESIZABLE, 1);
       ubi_assert(r == 0);
 
-      r = heap_getblock_usable_size(NULL, result, &usable_size);
+      r = heap_getblock_allocated_size(NULL, result, &allocated_size);
       ubi_assert(r == 0);
 
       r = heap_getblocksize(NULL, result, &requested_size);
       ubi_assert(r == 0);
 
-      resizable_buffer_size_ = usable_size;
+      resizable_buffer_size_ = allocated_size;
       resizable_requested_size_ = requested_size;
       if (nonpersistent_buffer_size_max_ < (resizable_buffer_size_ + temp_buffer_size_)) {
         nonpersistent_buffer_size_max_ = resizable_buffer_size_ + temp_buffer_size_;
@@ -209,7 +209,7 @@ TfLiteStatus tflite::UbiHeapBufferAllocator::ResizeBuffer(uint8_t* resizable_buf
 uint8_t* tflite::UbiHeapBufferAllocator::AllocateTemp(size_t size, size_t alignment) {
   int r;
   uint8_t* result;
-  unsigned int usable_size, requested_size;
+  unsigned int allocated_size, requested_size;
 
   do
   {
@@ -238,13 +238,13 @@ uint8_t* tflite::UbiHeapBufferAllocator::AllocateTemp(size_t size, size_t alignm
     r = heap_set_flag(NULL, result, HEAP_FLAG_NO__TFL_TEMP, 1);
     ubi_assert(r == 0);
 
-    r = heap_getblock_usable_size(NULL, result, &usable_size);
+    r = heap_getblock_allocated_size(NULL, result, &allocated_size);
     ubi_assert(r == 0);
 
     r = heap_getblocksize(NULL, result, &requested_size);
     ubi_assert(r == 0);
 
-    temp_buffer_size_ += usable_size;
+    temp_buffer_size_ += allocated_size;
     temp_requested_size_ += requested_size;
     temp_alloc_count_++;
     if (nonpersistent_buffer_size_max_ < (resizable_buffer_size_ + temp_buffer_size_)) {
@@ -259,12 +259,12 @@ uint8_t* tflite::UbiHeapBufferAllocator::AllocateTemp(size_t size, size_t alignm
 
 void tflite::UbiHeapBufferAllocator::DeallocateTemp(uint8_t* buf) {
   int r;
-  unsigned int usable_size, requested_size;
+  unsigned int allocated_size, requested_size;
 
   r = heap_get_flag(NULL, buf, HEAP_FLAG_NO__TFL_TEMP);
   ubi_assert(r == 1);
 
-  r = heap_getblock_usable_size(NULL, buf, &usable_size);
+  r = heap_getblock_allocated_size(NULL, buf, &allocated_size);
   ubi_assert(r == 0);
 
   r = heap_getblocksize(NULL, buf, &requested_size);
@@ -273,7 +273,7 @@ void tflite::UbiHeapBufferAllocator::DeallocateTemp(uint8_t* buf) {
   r = heap_free(NULL, buf);
   ubi_assert(r == 0);
 
-  temp_buffer_size_ -= usable_size;
+  temp_buffer_size_ -= allocated_size;
   temp_requested_size_ -= requested_size;
   temp_alloc_count_--;
 }
@@ -282,7 +282,7 @@ TfLiteStatus tflite::UbiHeapBufferAllocator::ResetTempAllocations() {
   int r;
   void * cur_block;
   void * prev_block;
-  unsigned int usable_size, requested_size;
+  unsigned int allocated_size, requested_size;
   TfLiteStatus status;
 
   status = kTfLiteError;
@@ -298,7 +298,7 @@ TfLiteStatus tflite::UbiHeapBufferAllocator::ResetTempAllocations() {
 
     r = heap_get_flag(NULL, cur_block, HEAP_FLAG_NO__TFL_TEMP);
     if (r == 1) {
-      r = heap_getblock_usable_size(NULL, cur_block, &usable_size);
+      r = heap_getblock_allocated_size(NULL, cur_block, &allocated_size);
       ubi_assert(r == 0);
 
       r = heap_getblocksize(NULL, cur_block, &requested_size);
@@ -307,7 +307,7 @@ TfLiteStatus tflite::UbiHeapBufferAllocator::ResetTempAllocations() {
       r = heap_free(NULL, cur_block);
       ubi_assert(r == 0);
 
-      temp_buffer_size_ -= usable_size;
+      temp_buffer_size_ -= allocated_size;
       temp_requested_size_ -= requested_size;
       temp_alloc_count_--;
     }
@@ -330,7 +330,7 @@ bool tflite::UbiHeapBufferAllocator::IsAllTempDeallocated() {
 uint8_t* tflite::UbiHeapBufferAllocator::AllocatePersistentBuffer(size_t size, size_t alignment) {
   int r;
   uint8_t* result;
-  unsigned int usable_size, requested_size;
+  unsigned int allocated_size, requested_size;
 
   do
   {
@@ -359,13 +359,13 @@ uint8_t* tflite::UbiHeapBufferAllocator::AllocatePersistentBuffer(size_t size, s
     r = heap_set_flag(NULL, result, HEAP_FLAG_NO__TFL_PERSISTENT, 1);
     ubi_assert(r == 0);
 
-    r = heap_getblock_usable_size(NULL, result, &usable_size);
+    r = heap_getblock_allocated_size(NULL, result, &allocated_size);
     ubi_assert(r == 0);
 
     r = heap_getblocksize(NULL, result, &requested_size);
     ubi_assert(r == 0);
 
-    persistent_buffer_size_ += usable_size;
+    persistent_buffer_size_ += allocated_size;
     persistent_requested_size_ += requested_size;
     persistent_alloc_count_++;
     if (persistent_buffer_size_max_ < persistent_buffer_size_) {
@@ -382,7 +382,7 @@ TfLiteStatus tflite::UbiHeapBufferAllocator::ResetPersistentAllocations() {
   int r;
   void * cur_block;
   void * prev_block;
-  unsigned int usable_size, requested_size;
+  unsigned int allocated_size, requested_size;
   TfLiteStatus status;
 
   status = kTfLiteError;
@@ -398,7 +398,7 @@ TfLiteStatus tflite::UbiHeapBufferAllocator::ResetPersistentAllocations() {
 
     r = heap_get_flag(NULL, cur_block, HEAP_FLAG_NO__TFL_PERSISTENT);
     if (r == 1) {
-      r = heap_getblock_usable_size(NULL, cur_block, &usable_size);
+      r = heap_getblock_allocated_size(NULL, cur_block, &allocated_size);
       ubi_assert(r == 0);
 
       r = heap_getblocksize(NULL, cur_block, &requested_size);
@@ -407,7 +407,7 @@ TfLiteStatus tflite::UbiHeapBufferAllocator::ResetPersistentAllocations() {
       r = heap_free(NULL, cur_block);
       ubi_assert(r == 0);
 
-      persistent_buffer_size_ -= usable_size;
+      persistent_buffer_size_ -= allocated_size;
       persistent_requested_size_ -= requested_size;
       persistent_alloc_count_--;
     }
