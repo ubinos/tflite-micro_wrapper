@@ -56,7 +56,8 @@ UbiHeapMicroAllocator* tflite::UbiHeapMicroAllocator::Create(UbiHeapBufferAlloca
 }
 
 size_t tflite::UbiHeapMicroAllocator::GetDefaultTailUsage(bool is_memory_planner_given) {
-  return 0;
+  // MicroBuiltinDataAllocator + SubgraphAllocations
+  return heap_get_block_allocated_size_min(NULL) * 2;
 }
 
 uint8_t* tflite::UbiHeapMicroAllocator::GetOverlayMemoryAddress() const {

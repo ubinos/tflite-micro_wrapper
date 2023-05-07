@@ -13,12 +13,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <ubinos.h>
+#include <ubinos/ubiclib/heap.h>
+
 #include "tensorflow/lite/micro/ubi_heap_micro_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/ubi_heap_buffer_allocator.h"
 
 #include <cstdint>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/arena_allocator/ubi_heap_buffer_allocator.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
@@ -139,12 +142,15 @@ size_t GetArenaUsedBytesBySimpleMockModel(bool is_memory_planner_injected) {
   const int tensor_count = 4;
   const int node_count = 2;
   int alignment = MicroArenaBufferAlignment();
-  size_t eval_tensor_size = AlignSizeUp(AlignSizeUp<TfLiteEvalTensor>(1), alignment) * tensor_count;
-  size_t node_registration_size = AlignSizeUp(AlignSizeUp<NodeAndRegistration>(1), alignment) * node_count;
+  size_t block_overhead = heap_get_block_overhead(NULL);
+
+  size_t eval_tensor_size = AlignSizeUp(AlignSizeUp<TfLiteEvalTensor>(tensor_count) + block_overhead, alignment);
+  size_t node_registration_size = AlignSizeUp(AlignSizeUp<NodeAndRegistration>(node_count) + block_overhead, alignment);
 
   const int activation_tensor_count = 3;
   size_t activation_tensor_buffer =
       activation_tensor_count * AlignSizeUp(1, alignment);
+  activation_tensor_buffer = AlignSizeUp(activation_tensor_buffer + block_overhead, alignment);
 
   size_t default_tail_usage =
       UbiHeapMicroAllocator::GetDefaultTailUsage(/*is_memory_plan_given=*/false);
@@ -153,8 +159,8 @@ size_t GetArenaUsedBytesBySimpleMockModel(bool is_memory_planner_injected) {
         UbiHeapMicroAllocator::GetDefaultTailUsage(/*is_memory_plan_given=*/true);
   }
 
-  return default_tail_usage + eval_tensor_size + node_registration_size +
-         activation_tensor_buffer;
+  return eval_tensor_size + node_registration_size + activation_tensor_buffer +
+        default_tail_usage;
 }
 
 }  // namespace
@@ -1340,7 +1346,7 @@ TF_LITE_MICRO_TEST(TestMultiSubgraphNumScratchAllocations) {
   size_t used_bytes_with_scratch = allocator->used_bytes();
 
   TF_LITE_MICRO_EXPECT_EQ(used_bytes_with_scratch,
-                          used_bytes + sizeof(tflite::ScratchBufferHandle) * 2);
+                          used_bytes + /* sizeof(tflite::ScratchBufferHandle) * 2*/ heap_get_block_allocated_size_min(NULL));
 
   delete allocator;
   delete simple_allocator;
