@@ -14,15 +14,14 @@ limitations under the License.
 ==============================================================================*/
 
 #include "tensorflow/lite/micro/ubi_micro_interpreter.h"
+#include "tensorflow/lite/micro/recording_ubi_micro_allocator.h"
 
 #include <cstdint>
 
 #include "tensorflow/lite/micro/all_ops_resolver.h"
-#include "tensorflow/lite/micro/arena_allocator/recording_single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
-#include "tensorflow/lite/micro/recording_ubi_micro_allocator.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
