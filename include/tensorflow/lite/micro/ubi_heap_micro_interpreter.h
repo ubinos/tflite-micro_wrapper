@@ -9,7 +9,7 @@ namespace tflite {
     class UbiHeapMicroInterpreter : public MicroInterpreter {
 
     private:
-        const UbiHeapMicroAllocator& ubi_micro_allocator_;
+        const UbiHeapMicroAllocator& ubi_heap_micro_allocator_;
 
     public:
         UbiHeapMicroInterpreter(const Model* model, const MicroOpResolver& op_resolver, UbiHeapMicroAllocator* allocator, MicroResourceVariables* resource_variables = nullptr, MicroProfilerInterface* profiler = nullptr);
