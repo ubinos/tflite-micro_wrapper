@@ -11,8 +11,6 @@ namespace tflite {
 
 
     public:
-        UbiHeapMicroAllocator(IPersistentBufferAllocator* persistent_buffer_allocator, INonPersistentBufferAllocator* non_persistent_buffer_allocator, MicroMemoryPlanner* memory_planner);
-
         UbiHeapMicroAllocator(UbiHeapBufferAllocator* memory_allocator, MicroMemoryPlanner* memory_planner);
 
         UbiHeapMicroAllocator(UbiHeapBufferAllocator* memory_allocator);
@@ -45,10 +43,7 @@ namespace tflite {
     private:
         GreedyMemoryPlanner default_memory_planner_;
 
-        /**
-         * ubinos_lang_config {"init_value": nullptr}
-         */
-        INonPersistentBufferAllocator* non_persistent_heap_buffer_allocator_ = nullptr;
+        const UbiHeapBufferAllocator* heap_memory_allocator_;
     };
 }
 

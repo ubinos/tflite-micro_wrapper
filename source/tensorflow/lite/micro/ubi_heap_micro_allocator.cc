@@ -31,16 +31,12 @@
 
 namespace tflite {
 
-tflite::UbiHeapMicroAllocator::UbiHeapMicroAllocator(IPersistentBufferAllocator* persistent_buffer_allocator, INonPersistentBufferAllocator* non_persistent_buffer_allocator, MicroMemoryPlanner* memory_planner)
-    : MicroAllocator(persistent_buffer_allocator, non_persistent_buffer_allocator, memory_planner), non_persistent_heap_buffer_allocator_(non_persistent_buffer_allocator) {
-}
-
 tflite::UbiHeapMicroAllocator::UbiHeapMicroAllocator(UbiHeapBufferAllocator* memory_allocator, MicroMemoryPlanner* memory_planner)
-    : MicroAllocator(memory_allocator, memory_allocator, memory_planner), non_persistent_heap_buffer_allocator_(memory_allocator) {
+    : MicroAllocator(memory_allocator, memory_allocator, memory_planner), heap_memory_allocator_(memory_allocator) {
 }
 
 tflite::UbiHeapMicroAllocator::UbiHeapMicroAllocator(UbiHeapBufferAllocator* memory_allocator)
-    : MicroAllocator(memory_allocator, memory_allocator, &default_memory_planner_), non_persistent_heap_buffer_allocator_(memory_allocator) {
+    : MicroAllocator(memory_allocator, memory_allocator, &default_memory_planner_), heap_memory_allocator_(memory_allocator) {
 }
 
 tflite::UbiHeapMicroAllocator::~UbiHeapMicroAllocator() {
@@ -50,7 +46,7 @@ UbiHeapMicroAllocator* tflite::UbiHeapMicroAllocator::Create(UbiHeapBufferAlloca
   TFLITE_DCHECK(memory_allocator != nullptr);
   TFLITE_DCHECK(memory_planner != nullptr);
 
-  return new UbiHeapMicroAllocator(memory_allocator, memory_allocator, memory_planner);
+  return new UbiHeapMicroAllocator(memory_allocator, memory_planner);
 }
 
 UbiHeapMicroAllocator* tflite::UbiHeapMicroAllocator::Create(UbiHeapBufferAllocator* memory_allocator) {
@@ -64,8 +60,7 @@ size_t tflite::UbiHeapMicroAllocator::GetDefaultTailUsage(bool is_memory_planner
 }
 
 uint8_t* tflite::UbiHeapMicroAllocator::GetOverlayMemoryAddress() const {
-  TFLITE_DCHECK(non_persistent_heap_buffer_allocator_ != nullptr);
-  return non_persistent_heap_buffer_allocator_->GetOverlayMemoryAddress();
+  return heap_memory_allocator_->GetOverlayMemoryAddress();
 }
 
 }  // namespace tflite
