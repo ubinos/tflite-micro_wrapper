@@ -28,7 +28,7 @@ limitations under the License.
 
 namespace tflite {
 namespace {
-constexpr size_t buffer_arena_size = 256 * 1024;
+constexpr size_t buffer_arena_size = 200 * 1024; //256 * 1024;
 uint8_t arena_buffer[buffer_arena_size];
 class MockProfiler : public MicroProfilerInterface {
  public:
