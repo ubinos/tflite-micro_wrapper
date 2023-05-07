@@ -42,6 +42,31 @@ namespace tflite {
          */
         size_t persistent_buffer_size_max_ = 0;
 
+        /**
+         * ubinos_lang_config {"init_value": 0}
+         */
+        size_t persistent_requested_size_ = 0;
+
+        /**
+         * ubinos_lang_config {"init_value": 0}
+         */
+        size_t temp_requested_size_ = 0;
+
+        /**
+         * ubinos_lang_config {"init_value": 0}
+         */
+        size_t resizable_requested_size_ = 0;
+
+        /**
+         * ubinos_lang_config {"init_value": 0}
+         */
+        size_t persistent_alloc_count_ = 0;
+
+        /**
+         * ubinos_lang_config {"init_value": 0}
+         */
+        size_t temp_alloc_count_ = 0;
+
     public:
         UbiHeapBufferAllocator();
 
@@ -108,6 +133,16 @@ namespace tflite {
          * This number takes in account any temporary allocations.
          */
         virtual size_t GetUsedBytesMax() const;
+
+        /**
+         * Returns the number of bytes requested from the head or tail.
+         */
+        virtual size_t GetRequestedBytes() const;
+
+        /**
+         * Returns the number of alloc calls from the head or tail.
+         */
+        virtual size_t GetAllocatedCount() const;
 
         /**
          * Returns a pointer pointing to the start of the overlay memory, which is used for activation tensors and scratch buffers by kernels at Invoke stage.
