@@ -64,6 +64,10 @@ uint8_t* tflite::UbiHeapMicroAllocator::GetOverlayMemoryAddress() const {
   return heap_memory_allocator_->GetOverlayMemoryAddress();
 }
 
+const UbiHeapBufferAllocator* tflite::UbiHeapMicroAllocator::GetSimpleMemoryAllocator() const {
+  return heap_memory_allocator_;
+}
+
 }  // namespace tflite
 
 #endif /* (INCLUDE__UBINOS__UBICLIB == 1) && !(UBINOS__UBICLIB__EXCLUDE_HEAP == 1) && !(UBINOS__UBICLIB__EXCLUDE_HEAP_FLAG == 1) */

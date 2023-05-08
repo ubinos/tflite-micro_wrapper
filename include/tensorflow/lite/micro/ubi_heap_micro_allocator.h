@@ -40,6 +40,8 @@ namespace tflite {
          */
         virtual uint8_t* GetOverlayMemoryAddress() const;
 
+        const UbiHeapBufferAllocator* GetSimpleMemoryAllocator() const;
+
     private:
         GreedyMemoryPlanner default_memory_planner_;
 
