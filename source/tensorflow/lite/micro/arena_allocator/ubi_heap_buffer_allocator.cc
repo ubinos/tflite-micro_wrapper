@@ -418,6 +418,47 @@ TfLiteStatus tflite::UbiHeapBufferAllocator::ResetPersistentAllocations() {
   return status;
 }
 
+
+TfLiteStatus tflite::UbiHeapBufferAllocator::DeallocatePersistentBuffer(uint8_t* buf) {
+  int r;
+  unsigned int allocated_size, requested_size;
+  TfLiteStatus status;
+
+  status = kTfLiteError;
+  do
+  {
+    r = heap_get_flag(NULL, buf, HEAP_FLAG_NO__TFL_PERSISTENT);
+    if (r != 1) {
+      break;
+    }
+
+    r = heap_getblock_allocated_size(NULL, buf, &allocated_size);
+    if (r != 0) {
+      break;
+    }
+
+    r = heap_getblocksize(NULL, buf, &requested_size);
+    if (r != 0) {
+      break;
+    }
+
+    r = heap_free(NULL, buf);
+    if (r != 0) {
+      break;
+    }
+
+    persistent_buffer_size_ -= allocated_size;
+    persistent_requested_size_ -= requested_size;
+    persistent_alloc_count_--;
+
+    status = kTfLiteOk;
+    break;
+  } while (1);
+
+  return status;
+}
+
+
 }  // namespace tflite
 
 #endif /* (INCLUDE__UBINOS__UBICLIB == 1) && !(UBINOS__UBICLIB__EXCLUDE_HEAP == 1) && !(UBINOS__UBICLIB__EXCLUDE_HEAP_FLAG == 1) */

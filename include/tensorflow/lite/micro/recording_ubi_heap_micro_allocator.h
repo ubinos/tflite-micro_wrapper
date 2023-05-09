@@ -3,12 +3,12 @@
 
 #include "tensorflow/lite/micro/arena_allocator/ubi_heap_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
-#include "tensorflow/lite/micro/ubi_micro_allocator.h"
+#include "tensorflow/lite/micro/ubi_heap_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 
 namespace tflite {
 
-class RecordingUbiMicroHeapAllocator : public tflite::UbiMicroHeapAllocator {
+class RecordingUbiHeapMicroAllocator : public tflite::UbiHeapMicroAllocator {
 
     private:
         const UbiHeapBufferAllocator* recording_memory_allocator_;
@@ -40,22 +40,24 @@ class RecordingUbiMicroHeapAllocator : public tflite::UbiMicroHeapAllocator {
 
         /**
          * TODO(b/187993291): Re-enable OpData allocating tracking.
-         * 
+         *
          * ubinos_lang_config {"init_value": "{}"}
          */
         RecordedAllocation recorded_op_data_ = {};
 
     public:
-        RecordingUbiMicroHeapAllocator(UbiHeapBufferAllocator* memory_allocator, MicroMemoryPlanner* memory_planner);
+        RecordingUbiHeapMicroAllocator(UbiHeapBufferAllocator* memory_allocator, MicroMemoryPlanner* memory_planner);
+
+        RecordingUbiHeapMicroAllocator(UbiHeapBufferAllocator* memory_allocator);
 
         /**
          * ubinos_lang_config {"override": true}
          */
-        virtual ~RecordingUbiMicroHeapAllocator() override;
+        virtual ~RecordingUbiHeapMicroAllocator() override;
 
         TF_LITE_REMOVE_VIRTUAL_DELETE
 
-        static RecordingUbiMicroHeapAllocator* Create(UbiHeapBufferAllocator* memory_allocator);
+        static RecordingUbiHeapMicroAllocator* Create(UbiHeapBufferAllocator* memory_allocator);
 
         /**
          * Returns the fixed amount of memory overhead of RecordingMicroAllocator.
@@ -96,14 +98,14 @@ class RecordingUbiMicroHeapAllocator : public tflite::UbiMicroHeapAllocator {
         /**
          * TODO(b/162311891): Once all kernels have been updated to the new API drop this method.
          * It is only used to record TfLiteTensor persistent allocations.
-         * 
+         *
          * ubinos_lang_config {"override": true}
          */
         TfLiteTensor* AllocatePersistentTfLiteTensorInternal() override;
 
         /**
          * TODO(b/162311891): Once all kernels have been updated to the new API drop this function since all allocations for quantized data will take place in the temp section.
-         * 
+         *
          * ubinos_lang_config {"override": true}
          */
         TfLiteStatus PopulateTfLiteTensorFromFlatbuffer(const Model* model, TfLiteTensor* tensor, int tensor_index, int subgraph_index, bool allocate_temp) override;

@@ -13,8 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <ubinos.h>
+#include <ubinos/ubiclib/heap.h>
+
 #include "tensorflow/lite/micro/ubi_heap_micro_interpreter.h"
-#include "tensorflow/lite/micro/ubi_heap_micro_allocator.h"
+#include "tensorflow/lite/micro/recording_ubi_heap_micro_allocator.h"
 
 #include <cstdint>
 
@@ -60,8 +63,8 @@ TF_LITE_MICRO_TEST(TestInterpreter) {
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
   tflite::UbiHeapBufferAllocator simple_allocator;
-  tflite::UbiHeapMicroAllocator heap_allocator(&simple_allocator);
-  tflite::UbiHeapMicroAllocator* allocator = &heap_allocator;
+  tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
+  tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
 
   // Create a new scope so that we can test the destructor.
   {
@@ -108,13 +111,13 @@ TF_LITE_MICRO_TEST(TestMultiTenantInterpreter) {
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
   tflite::UbiHeapBufferAllocator simple_allocator;
-  tflite::UbiHeapMicroAllocator heap_allocator(&simple_allocator);
+  tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
 
   size_t simple_model_head_usage = 0, complex_model_head_usage = 0;
 
   // Get simple_model_head_usage.
   {
-    tflite::UbiHeapMicroAllocator* allocator = &heap_allocator;
+    tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
     const tflite::Model* model0 = tflite::testing::GetSimpleMockModel();
     tflite::UbiHeapMicroInterpreter interpreter0(model0, op_resolver, allocator);
     TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter0.AllocateTensors());
@@ -129,8 +132,8 @@ TF_LITE_MICRO_TEST(TestMultiTenantInterpreter) {
   }
 
   // Shared allocator for various models.
-  tflite::UbiHeapMicroAllocator heap_allocator2(&simple_allocator);
-  tflite::UbiHeapMicroAllocator* allocator = &heap_allocator2;
+  tflite::RecordingUbiHeapMicroAllocator heap_allocator2(&simple_allocator);
+  tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator2;
 
   // Get complex_model_head_usage. No head space reuse since it's the first
   // model allocated in the `allocator`.
@@ -198,8 +201,8 @@ TF_LITE_MICRO_TEST(TestKernelMemoryPlanning) {
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
   tflite::UbiHeapBufferAllocator simple_allocator;
-  tflite::UbiHeapMicroAllocator heap_allocator(&simple_allocator);
-  tflite::UbiHeapMicroAllocator* allocator = &heap_allocator;
+  tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
+  tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
 
   // Make sure kernel memory planning works in multi-tenant context.
   for (int i = 0; i < 3; i++) {
@@ -246,8 +249,8 @@ TF_LITE_MICRO_TEST(TestIncompleteInitialization) {
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
   tflite::UbiHeapBufferAllocator simple_allocator;
-  tflite::UbiHeapMicroAllocator heap_allocator(&simple_allocator);
-  tflite::UbiHeapMicroAllocator* allocator = &heap_allocator;
+  tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
+  tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
 
   tflite::UbiHeapMicroInterpreter interpreter(model, op_resolver, allocator);
 }
@@ -261,8 +264,8 @@ TF_LITE_MICRO_TEST(InterpreterWithProfilerShouldProfileOps) {
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
   tflite::UbiHeapBufferAllocator simple_allocator;
-  tflite::UbiHeapMicroAllocator heap_allocator(&simple_allocator);
-  tflite::UbiHeapMicroAllocator* allocator = &heap_allocator;
+  tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
+  tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
 
   tflite::MockProfiler profiler;
   tflite::UbiHeapMicroInterpreter interpreter(model, op_resolver, allocator,
@@ -281,231 +284,241 @@ TF_LITE_MICRO_TEST(InterpreterWithProfilerShouldProfileOps) {
 #endif
 }
 
-// TF_LITE_MICRO_TEST(TestIncompleteInitializationAllocationsWithSmallArena) {
-//   const tflite::Model* model = tflite::testing::GetComplexMockModel();
-//   TF_LITE_MICRO_EXPECT(nullptr != model);
+TF_LITE_MICRO_TEST(TestIncompleteInitializationAllocationsWithSmallArena) {
+  const tflite::Model* model = tflite::testing::GetComplexMockModel();
+  TF_LITE_MICRO_EXPECT(nullptr != model);
 
-//   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
-//   // This test is designed to create the following classes/buffers successfully
-//   // on the arena:
-//   //
-//   // From tail: UbiHeapArenaBufferAllocator, UbiHeapMicroAllocator,
-//   //        UbiHeapMicroAllocator.
-//   //
-//   // From head:ScratchBufferRequest buffer.
-//   //
-//   // Since sizes of the above classes vary between architecture, we use sizeof
-//   // for whatever is visible from this test file. For those that are not visible
-//   // from this test file, we use the upper bound for x86 architecture since it
-//   // is not ideal to expose definitions for test only.
-//   constexpr size_t max_scratch_buffer_request_size = 192;
+  // This test is designed to create the following classes/buffers successfully
+  // on the arena:
+  //
+  // From tail: UbiHeapArenaBufferAllocator, RecordingUbiHeapMicroAllocator,
+  //        RecordingUbiHeapMicroAllocator.
+  //
+  // From head:ScratchBufferRequest buffer.
+  //
+  // Since sizes of the above classes vary between architecture, we use sizeof
+  // for whatever is visible from this test file. For those that are not visible
+  // from this test file, we use the upper bound for x86 architecture since it
+  // is not ideal to expose definitions for test only.
+  constexpr size_t max_scratch_buffer_request_size = 192;
 
-//   tflite::UbiHeapBufferAllocator simple_allocator;
-//   tflite::UbiHeapMicroAllocator heap_allocator(&simple_allocator);
-//   tflite::UbiHeapMicroAllocator* allocator = &heap_allocator;
+  tflite::UbiHeapBufferAllocator simple_allocator;
+  tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
+  tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
 
-//   tflite::UbiHeapMicroInterpreter interpreter(model, op_resolver, allocator);
+  tflite::UbiHeapMicroInterpreter interpreter(model, op_resolver, allocator);
 
-//   // Interpreter fails because arena is too small:
-//   TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteError);
+  size_t available_size;
+  void * ptr;
 
-//   // The head buffer use cannot exceed the upper bound from x86.
-//   TF_LITE_MICRO_EXPECT_LE(
-//       allocator->GetSimpleMemoryAllocator()->GetNonPersistentUsedBytes(),
-//       max_scratch_buffer_request_size);
+  available_size = simple_allocator.GetAvailableMemory(tflite::MicroArenaBufferAlignment());
+  ptr = heap_malloc(NULL, available_size, UBINOS__UBICLIB__HEAP_DEFAULT_DIR);
+  ubi_assert(ptr != NULL);
 
-//   // Ensure allocations are zero (ignore tail since some internal structs are
-//   // initialized with this space):
-//   TF_LITE_MICRO_EXPECT_EQ(
-//       static_cast<size_t>(0),
-//       allocator->GetRecordedAllocation(
-//               tflite::RecordedAllocationType::kTfLiteEvalTensorData)
-//           .used_bytes);
-//   TF_LITE_MICRO_EXPECT_EQ(
-//       static_cast<size_t>(0),
-//       allocator->GetRecordedAllocation(
-//               tflite::RecordedAllocationType::kTfLiteTensorVariableBufferData)
-//           .used_bytes);
-//   TF_LITE_MICRO_EXPECT_EQ(
-//       static_cast<size_t>(0),
-//       allocator->GetRecordedAllocation(tflite::RecordedAllocationType::kOpData)
-//           .used_bytes);
-// }
+  // Interpreter fails because arena is too small:
+  TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteError);
 
-// TF_LITE_MICRO_TEST(TestInterpreterDoesNotAllocateUntilInvoke) {
-//   const tflite::Model* model = tflite::testing::GetComplexMockModel();
-//   TF_LITE_MICRO_EXPECT(nullptr != model);
+  // The head buffer use cannot exceed the upper bound from x86.
+  TF_LITE_MICRO_EXPECT_LE(
+      allocator->GetSimpleMemoryAllocator()->GetNonPersistentUsedBytes(),
+      max_scratch_buffer_request_size);
 
-//   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+  // Ensure allocations are zero (ignore tail since some internal structs are
+  // initialized with this space):
+  TF_LITE_MICRO_EXPECT_EQ(
+      static_cast<size_t>(0),
+      allocator->GetRecordedAllocation(
+              tflite::RecordedAllocationType::kTfLiteEvalTensorData)
+          .used_bytes);
+  TF_LITE_MICRO_EXPECT_EQ(
+      static_cast<size_t>(0),
+      allocator->GetRecordedAllocation(
+              tflite::RecordedAllocationType::kTfLiteTensorVariableBufferData)
+          .used_bytes);
+  TF_LITE_MICRO_EXPECT_EQ(
+      static_cast<size_t>(0),
+      allocator->GetRecordedAllocation(tflite::RecordedAllocationType::kOpData)
+          .used_bytes);
 
-//   tflite::UbiHeapBufferAllocator simple_allocator;
-//   tflite::UbiHeapMicroAllocator heap_allocator(&simple_allocator);
-//   tflite::UbiHeapMicroAllocator* allocator = &heap_allocator;
+  heap_free(NULL, ptr);
+}
 
-//   tflite::UbiHeapMicroInterpreter interpreter(model, op_resolver, allocator);
+TF_LITE_MICRO_TEST(TestInterpreterDoesNotAllocateUntilInvoke) {
+  const tflite::Model* model = tflite::testing::GetComplexMockModel();
+  TF_LITE_MICRO_EXPECT(nullptr != model);
 
-//   // Ensure allocations are zero (ignore tail since some internal structs are
-//   // initialized with this space):
-//   TF_LITE_MICRO_EXPECT_EQ(
-//       static_cast<size_t>(0),
-//       allocator->GetSimpleMemoryAllocator()->GetNonPersistentUsedBytes());
-//   TF_LITE_MICRO_EXPECT_EQ(
-//       static_cast<size_t>(0),
-//       allocator->GetRecordedAllocation(
-//               tflite::RecordedAllocationType::kTfLiteTensorVariableBufferData)
-//           .used_bytes);
-//   TF_LITE_MICRO_EXPECT_EQ(
-//       static_cast<size_t>(0),
-//       allocator->GetRecordedAllocation(
-//               tflite::RecordedAllocationType::kTfLiteEvalTensorData)
-//           .used_bytes);
-//   TF_LITE_MICRO_EXPECT_EQ(
-//       static_cast<size_t>(0),
-//       allocator->GetRecordedAllocation(tflite::RecordedAllocationType::kOpData)
-//           .used_bytes);
+  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
-//   TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteOk);
-//   allocator->PrintAllocations();
+  tflite::UbiHeapBufferAllocator simple_allocator;
+  tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
+  tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
 
-//   // Allocation sizes vary based on platform - check that allocations are now
-//   // non-zero:
-//   TF_LITE_MICRO_EXPECT_GT(
-//       allocator->GetSimpleMemoryAllocator()->GetNonPersistentUsedBytes(),
-//       static_cast<size_t>(0));
-//   TF_LITE_MICRO_EXPECT_GT(
-//       allocator->GetRecordedAllocation(
-//               tflite::RecordedAllocationType::kTfLiteEvalTensorData)
-//           .used_bytes,
-//       0);
+  tflite::UbiHeapMicroInterpreter interpreter(model, op_resolver, allocator);
 
-//   TF_LITE_MICRO_EXPECT_GT(
-//       allocator->GetRecordedAllocation(
-//               tflite::RecordedAllocationType::kTfLiteTensorVariableBufferData)
-//           .used_bytes,
-//       static_cast<size_t>(0));
+  // Ensure allocations are zero (ignore tail since some internal structs are
+  // initialized with this space):
+  TF_LITE_MICRO_EXPECT_EQ(
+      static_cast<size_t>(0),
+      allocator->GetSimpleMemoryAllocator()->GetNonPersistentUsedBytes());
+  TF_LITE_MICRO_EXPECT_EQ(
+      static_cast<size_t>(0),
+      allocator->GetRecordedAllocation(
+              tflite::RecordedAllocationType::kTfLiteTensorVariableBufferData)
+          .used_bytes);
+  TF_LITE_MICRO_EXPECT_EQ(
+      static_cast<size_t>(0),
+      allocator->GetRecordedAllocation(
+              tflite::RecordedAllocationType::kTfLiteEvalTensorData)
+          .used_bytes);
+  TF_LITE_MICRO_EXPECT_EQ(
+      static_cast<size_t>(0),
+      allocator->GetRecordedAllocation(tflite::RecordedAllocationType::kOpData)
+          .used_bytes);
 
-//   // TODO(b/160160549): This check is mostly meaningless right now because the
-//   // operator creation in our mock models is inconsistent.  Revisit what
-//   // this check should be once the mock models are properly created.
-//   TF_LITE_MICRO_EXPECT_EQ(
-//       allocator->GetRecordedAllocation(tflite::RecordedAllocationType::kOpData)
-//           .used_bytes,
-//       static_cast<size_t>(0));
-// }
+  TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteOk);
+  allocator->PrintAllocations();
 
-// TF_LITE_MICRO_TEST(TestInterpreterMultipleInputs) {
-//   const tflite::Model* model = tflite::testing::GetSimpleMultipleInputsModel();
-//   TF_LITE_MICRO_EXPECT(nullptr != model);
+  // Allocation sizes vary based on platform - check that allocations are now
+  // non-zero:
+  TF_LITE_MICRO_EXPECT_GT(
+      allocator->GetSimpleMemoryAllocator()->GetNonPersistentUsedBytes(),
+      static_cast<size_t>(0));
+  TF_LITE_MICRO_EXPECT_GT(
+      allocator->GetRecordedAllocation(
+              tflite::RecordedAllocationType::kTfLiteEvalTensorData)
+          .used_bytes,
+      0);
 
-//   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+  TF_LITE_MICRO_EXPECT_GT(
+      allocator->GetRecordedAllocation(
+              tflite::RecordedAllocationType::kTfLiteTensorVariableBufferData)
+          .used_bytes,
+      static_cast<size_t>(0));
 
-//   tflite::UbiHeapBufferAllocator simple_allocator;
-//   tflite::UbiHeapMicroAllocator heap_allocator(&simple_allocator);
-//   tflite::UbiHeapMicroAllocator* allocator = &heap_allocator;
+  // TODO(b/160160549): This check is mostly meaningless right now because the
+  // operator creation in our mock models is inconsistent.  Revisit what
+  // this check should be once the mock models are properly created.
+  TF_LITE_MICRO_EXPECT_EQ(
+      allocator->GetRecordedAllocation(tflite::RecordedAllocationType::kOpData)
+          .used_bytes,
+      static_cast<size_t>(0));
+}
 
-//   // Create a new scope so that we can test the destructor.
-//   {
-//     tflite::UbiHeapMicroInterpreter interpreter(model, op_resolver, allocator);
+TF_LITE_MICRO_TEST(TestInterpreterMultipleInputs) {
+  const tflite::Model* model = tflite::testing::GetSimpleMultipleInputsModel();
+  TF_LITE_MICRO_EXPECT(nullptr != model);
 
-//     TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
-//     TF_LITE_MICRO_EXPECT_LE(interpreter.arena_used_bytes(), 928 + 100);
+  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
-//     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(3), interpreter.inputs_size());
-//     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.outputs_size());
+  tflite::UbiHeapBufferAllocator simple_allocator;
+  tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
+  tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
 
-//     TfLiteTensor* input = interpreter.input(0);
-//     TF_LITE_MICRO_EXPECT(nullptr != input);
-//     TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, input->type);
-//     TF_LITE_MICRO_EXPECT_EQ(1, input->dims->size);
-//     TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[0]);
-//     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), input->bytes);
-//     TF_LITE_MICRO_EXPECT(nullptr != input->data.i32);
-//     input->data.i32[0] = 21;
+  // Create a new scope so that we can test the destructor.
+  {
+    tflite::UbiHeapMicroInterpreter interpreter(model, op_resolver, allocator);
 
-//     TfLiteTensor* input1 = interpreter.input(1);
-//     TF_LITE_MICRO_EXPECT(nullptr != input1);
-//     TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, input1->type);
-//     TF_LITE_MICRO_EXPECT_EQ(1, input1->dims->size);
-//     TF_LITE_MICRO_EXPECT_EQ(1, input1->dims->data[0]);
-//     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), input1->bytes);
-//     TF_LITE_MICRO_EXPECT(nullptr != input1->data.i32);
-//     input1->data.i32[0] = 21;
+    TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
+    TF_LITE_MICRO_EXPECT_LE(interpreter.arena_used_bytes(), 928 + 100);
 
-//     TfLiteTensor* input2 = interpreter.input(2);
-//     TF_LITE_MICRO_EXPECT(nullptr != input2);
-//     TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, input2->type);
-//     TF_LITE_MICRO_EXPECT_EQ(1, input2->dims->size);
-//     TF_LITE_MICRO_EXPECT_EQ(1, input2->dims->data[0]);
-//     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), input2->bytes);
-//     TF_LITE_MICRO_EXPECT(nullptr != input2->data.i32);
-//     input2->data.i32[0] = 24;
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(3), interpreter.inputs_size());
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.outputs_size());
 
-//     TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.Invoke());
+    TfLiteTensor* input = interpreter.input(0);
+    TF_LITE_MICRO_EXPECT(nullptr != input);
+    TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, input->type);
+    TF_LITE_MICRO_EXPECT_EQ(1, input->dims->size);
+    TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[0]);
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), input->bytes);
+    TF_LITE_MICRO_EXPECT(nullptr != input->data.i32);
+    input->data.i32[0] = 21;
 
-//     TfLiteTensor* output = interpreter.output(0);
-//     TF_LITE_MICRO_EXPECT(nullptr != output);
-//     TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, output->type);
-//     TF_LITE_MICRO_EXPECT_EQ(1, output->dims->size);
-//     TF_LITE_MICRO_EXPECT_EQ(1, output->dims->data[0]);
-//     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), output->bytes);
-//     TF_LITE_MICRO_EXPECT(nullptr != output->data.i32);
-//     TF_LITE_MICRO_EXPECT_EQ(66, output->data.i32[0]);
-//   }
+    TfLiteTensor* input1 = interpreter.input(1);
+    TF_LITE_MICRO_EXPECT(nullptr != input1);
+    TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, input1->type);
+    TF_LITE_MICRO_EXPECT_EQ(1, input1->dims->size);
+    TF_LITE_MICRO_EXPECT_EQ(1, input1->dims->data[0]);
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), input1->bytes);
+    TF_LITE_MICRO_EXPECT(nullptr != input1->data.i32);
+    input1->data.i32[0] = 21;
 
-//   TF_LITE_MICRO_EXPECT_EQ(tflite::testing::MultipleInputs::freed_, true);
-// }
+    TfLiteTensor* input2 = interpreter.input(2);
+    TF_LITE_MICRO_EXPECT(nullptr != input2);
+    TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, input2->type);
+    TF_LITE_MICRO_EXPECT_EQ(1, input2->dims->size);
+    TF_LITE_MICRO_EXPECT_EQ(1, input2->dims->data[0]);
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), input2->bytes);
+    TF_LITE_MICRO_EXPECT(nullptr != input2->data.i32);
+    input2->data.i32[0] = 24;
 
-// TF_LITE_MICRO_TEST(TestInterpreterNullInputsAndOutputs) {
-//   const tflite::Model* model =
-//       tflite::testing::GetSimpleModelWithNullInputsAndOutputs();
-//   TF_LITE_MICRO_EXPECT(nullptr != model);
+    TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.Invoke());
 
-//   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+    TfLiteTensor* output = interpreter.output(0);
+    TF_LITE_MICRO_EXPECT(nullptr != output);
+    TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, output->type);
+    TF_LITE_MICRO_EXPECT_EQ(1, output->dims->size);
+    TF_LITE_MICRO_EXPECT_EQ(1, output->dims->data[0]);
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), output->bytes);
+    TF_LITE_MICRO_EXPECT(nullptr != output->data.i32);
+    TF_LITE_MICRO_EXPECT_EQ(66, output->data.i32[0]);
+  }
 
-//   tflite::UbiHeapBufferAllocator simple_allocator;
-//   tflite::UbiHeapMicroAllocator heap_allocator(&simple_allocator);
-//   tflite::UbiHeapMicroAllocator* allocator = &heap_allocator;
+  TF_LITE_MICRO_EXPECT_EQ(tflite::testing::MultipleInputs::freed_, true);
+}
 
-//   tflite::UbiHeapMicroInterpreter interpreter(model, op_resolver, allocator);
+TF_LITE_MICRO_TEST(TestInterpreterNullInputsAndOutputs) {
+  const tflite::Model* model =
+      tflite::testing::GetSimpleModelWithNullInputsAndOutputs();
+  TF_LITE_MICRO_EXPECT(nullptr != model);
 
-//   TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
+  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
-//   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.inputs_size());
-//   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.outputs_size());
+  tflite::UbiHeapBufferAllocator simple_allocator;
+  tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
+  tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
 
-//   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.Invoke());
-// }
+  tflite::UbiHeapMicroInterpreter interpreter(model, op_resolver, allocator);
 
-// // This test is disabled from Bluepill platform because it requires more SRAM
-// // than what our Bluepill simulation platform specifies.
-// TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
-//   const tflite::Model* model = tflite::testing::GetModelWith256x256Tensor();
-//   TF_LITE_MICRO_EXPECT(nullptr != model);
+  TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
 
-//   tflite::UbiHeapBufferAllocator simple_allocator;
-//   tflite::UbiHeapMicroAllocator heap_allocator(&simple_allocator);
-//   tflite::UbiHeapMicroAllocator* allocator = &heap_allocator;
+  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.inputs_size());
+  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.outputs_size());
 
-//   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
-//   tflite::UbiHeapMicroInterpreter interpreter(model, op_resolver, allocator);
-//   TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.Invoke());
+}
 
-//   // Store the required arena size before Invoke() because this is what this
-//   // api might be used.
-//   size_t used_arena_size = interpreter.arena_used_bytes();
+// This test is disabled from Bluepill platform because it requires more SRAM
+// than what our Bluepill simulation platform specifies.
+TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
+  const tflite::Model* model = tflite::testing::GetModelWith256x256Tensor();
+  TF_LITE_MICRO_EXPECT(nullptr != model);
 
-//   TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteOk);
+  tflite::UbiHeapBufferAllocator simple_allocator;
+  tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
+  tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
 
-//   // The reported used_arena_size plus alignment padding is sufficient for this
-//   // model to run. Plus alignment padding is because UbiHeapArenaBufferAllocator
-//   // is given the arena after the alignment.
-//   size_t required_arena_size =
-//       used_arena_size + tflite::MicroArenaBufferAlignment();
-//   tflite::UbiHeapMicroInterpreter interpreter2(model, op_resolver, allocator);
-//   TF_LITE_MICRO_EXPECT_EQ(interpreter2.AllocateTensors(), kTfLiteOk);
+  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+  tflite::UbiHeapMicroInterpreter interpreter(model, op_resolver, allocator);
+  TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
 
-//   TF_LITE_MICRO_EXPECT_EQ(interpreter2.Invoke(), kTfLiteOk);
-// }
+  // Store the required arena size before Invoke() because this is what this
+  // api might be used.
+  size_t used_arena_size = interpreter.arena_used_bytes();
+
+  TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteOk);
+
+  // The reported used_arena_size plus alignment padding is sufficient for this
+  // model to run. Plus alignment padding is because UbiHeapArenaBufferAllocator
+  // is given the arena after the alignment.
+  size_t required_arena_size =
+      used_arena_size + tflite::MicroArenaBufferAlignment();
+  (void) required_arena_size;
+  tflite::UbiHeapMicroInterpreter interpreter2(model, op_resolver, allocator);
+  TF_LITE_MICRO_EXPECT_EQ(interpreter2.AllocateTensors(), kTfLiteOk);
+
+  TF_LITE_MICRO_EXPECT_EQ(interpreter2.Invoke(), kTfLiteOk);
+}
 
 TF_LITE_MICRO_TESTS_END
