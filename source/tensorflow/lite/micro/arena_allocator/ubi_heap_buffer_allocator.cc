@@ -53,7 +53,7 @@ size_t tflite::UbiHeapBufferAllocator::GetUsedBytesMax() const {
 }
 
 size_t tflite::UbiHeapBufferAllocator::GetRequestedBytes() const {
-  return persistent_requested_size_ + temp_requested_size_ + resizable_requested_size_;
+  return persistent_requested_size_ + resizable_requested_size_ + temp_requested_size_;
 }
 
 size_t tflite::UbiHeapBufferAllocator::GetAllocatedCount() const {

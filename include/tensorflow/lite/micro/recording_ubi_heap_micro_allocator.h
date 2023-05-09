@@ -1,7 +1,7 @@
 #ifndef RECORDINGUBIHEAPMICROALLOCATOR_H
 #define RECORDINGUBIHEAPMICROALLOCATOR_H
 
-#include "tensorflow/lite/micro/arena_allocator/ubi_heap_buffer_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/recording_ubi_heap_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/ubi_heap_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
@@ -11,7 +11,7 @@ namespace tflite {
 class RecordingUbiHeapMicroAllocator : public tflite::UbiHeapMicroAllocator {
 
     private:
-        const UbiHeapBufferAllocator* recording_memory_allocator_;
+        const RecordingUbiHeapBufferAllocator* recording_memory_allocator_;
 
         /**
          * ubinos_lang_config {"init_value": "{}"}
@@ -46,9 +46,9 @@ class RecordingUbiHeapMicroAllocator : public tflite::UbiHeapMicroAllocator {
         RecordedAllocation recorded_op_data_ = {};
 
     public:
-        RecordingUbiHeapMicroAllocator(UbiHeapBufferAllocator* memory_allocator, MicroMemoryPlanner* memory_planner);
+        RecordingUbiHeapMicroAllocator(RecordingUbiHeapBufferAllocator* memory_allocator, MicroMemoryPlanner* memory_planner);
 
-        RecordingUbiHeapMicroAllocator(UbiHeapBufferAllocator* memory_allocator);
+        RecordingUbiHeapMicroAllocator(RecordingUbiHeapBufferAllocator* memory_allocator);
 
         /**
          * ubinos_lang_config {"override": true}
@@ -57,7 +57,7 @@ class RecordingUbiHeapMicroAllocator : public tflite::UbiHeapMicroAllocator {
 
         TF_LITE_REMOVE_VIRTUAL_DELETE
 
-        static RecordingUbiHeapMicroAllocator* Create(UbiHeapBufferAllocator* memory_allocator);
+        static RecordingUbiHeapMicroAllocator* Create(RecordingUbiHeapBufferAllocator* memory_allocator);
 
         /**
          * Returns the fixed amount of memory overhead of RecordingMicroAllocator.

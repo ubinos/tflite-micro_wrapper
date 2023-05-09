@@ -134,11 +134,11 @@ void setup() {
 #elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO)
   static tflite::RecordingUbiMicroInterpreter static_interpreter(model, micro_op_resolver, tensor_arena, kTensorArenaSize);
 #elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__UBI_HEAP_MICRO)
-  static tflite::UbiHeapBufferAllocator static_buffer_allocator;
+  static tflite::RecordingUbiHeapBufferAllocator static_buffer_allocator;
   static tflite::UbiHeapMicroAllocator static_allocator(&static_buffer_allocator);
   static tflite::UbiHeapMicroInterpreter static_interpreter(model, micro_op_resolver, &static_allocator);
 #elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)
-  static tflite::UbiHeapBufferAllocator static_buffer_allocator;
+  static tflite::RecordingUbiHeapBufferAllocator static_buffer_allocator;
   static tflite::RecordingUbiHeapMicroAllocator static_allocator(&static_buffer_allocator);
   static tflite::RecordingUbiHeapMicroInterpreter static_interpreter(model, micro_op_resolver, &static_allocator);
 #else

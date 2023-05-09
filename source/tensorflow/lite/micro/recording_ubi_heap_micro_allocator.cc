@@ -12,7 +12,7 @@
 #include <cstdint>
 
 #include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/micro/arena_allocator/ubi_heap_buffer_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/recording_ubi_heap_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
@@ -25,18 +25,18 @@ size_t tflite::RecordingUbiHeapMicroAllocator::GetDefaultTailUsage() {
   return UbiHeapMicroAllocator::GetDefaultTailUsage(/*is_memory_planner_given=*/false);
 }
 
-tflite::RecordingUbiHeapMicroAllocator::RecordingUbiHeapMicroAllocator(UbiHeapBufferAllocator* recording_memory_allocator, MicroMemoryPlanner* memory_planner)
+tflite::RecordingUbiHeapMicroAllocator::RecordingUbiHeapMicroAllocator(RecordingUbiHeapBufferAllocator* recording_memory_allocator, MicroMemoryPlanner* memory_planner)
     : UbiHeapMicroAllocator(recording_memory_allocator, memory_planner), recording_memory_allocator_(recording_memory_allocator) {
 }
 
-tflite::RecordingUbiHeapMicroAllocator::RecordingUbiHeapMicroAllocator(UbiHeapBufferAllocator* recording_memory_allocator)
+tflite::RecordingUbiHeapMicroAllocator::RecordingUbiHeapMicroAllocator(RecordingUbiHeapBufferAllocator* recording_memory_allocator)
     : UbiHeapMicroAllocator(recording_memory_allocator), recording_memory_allocator_(recording_memory_allocator) {
 }
 
 tflite::RecordingUbiHeapMicroAllocator::~RecordingUbiHeapMicroAllocator() {
 }
 
-RecordingUbiHeapMicroAllocator* tflite::RecordingUbiHeapMicroAllocator::Create(UbiHeapBufferAllocator* recording_memory_allocator) {
+RecordingUbiHeapMicroAllocator* tflite::RecordingUbiHeapMicroAllocator::Create(RecordingUbiHeapBufferAllocator* recording_memory_allocator) {
   TFLITE_DCHECK(recording_memory_allocator != nullptr);
 
   return new RecordingUbiHeapMicroAllocator(recording_memory_allocator);
