@@ -25,13 +25,15 @@ limitations under the License.
 #if   (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__MICRO)
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO)
-#include "tensorflow/lite/micro/recording_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
 #elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__UBI_MICRO)
 #include "tensorflow/lite/micro/ubi_micro_interpreter.h"
 #elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO)
-#include "tensorflow/lite/micro/recording_ubi_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_ubi_micro_interpreter.h"
+#elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__UBI_HEAP_MICRO)
+#include "tensorflow/lite/micro/ubi_heap_micro_interpreter.h"
+#elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)
+#include "tensorflow/lite/micro/recording_ubi_heap_micro_interpreter.h"
 #else
 #error "Unsupported TFLITE_MICRO__INTERPRETER_TYPE"
 #endif
@@ -52,6 +54,10 @@ tflite::RecordingMicroInterpreter* interpreter = nullptr;
 tflite::UbiMicroInterpreter* interpreter = nullptr;
 #elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO)
 tflite::RecordingUbiMicroInterpreter* interpreter = nullptr;
+#elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__UBI_HEAP_MICRO)
+tflite::UbiHeapMicroInterpreter* interpreter = nullptr;
+#elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)
+tflite::RecordingUbiHeapMicroInterpreter* interpreter = nullptr;
 #else
 #error "Unsupported TFLITE_MICRO__INTERPRETER_TYPE"
 #endif
@@ -64,17 +70,24 @@ TfLiteTensor* input = nullptr;
 // signed 8-bit integers is to subtract 128 from the unsigned value to get a
 // signed value.
 
+#if (    !(TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__UBI_HEAP_MICRO) \
+      && !(TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)    )
 // An area of memory to use for input, output, and intermediate arrays.
 constexpr int kTensorArenaSize = 136 * 1024;
 alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
+#endif
 
 #if   (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO)
 const tflite::RecordingMicroAllocator* allocator = nullptr;
 #elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO)
 const tflite::RecordingUbiMicroAllocator* allocator = nullptr;
+#elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)
+const tflite::RecordingUbiHeapMicroAllocator* allocator = nullptr;
 #endif
 
-#if ((TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO))
+#if (    (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)    )
 int inference_count_static = 0;
 #endif
 }  // namespace
@@ -113,20 +126,30 @@ void setup() {
   // Build an interpreter to run the model with.
   // NOLINTNEXTLINE(runtime-global-variables)
 #if   (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__MICRO)
-  static tflite::MicroInterpreter static_interpreter(
+  static tflite::MicroInterpreter static_interpreter(model, micro_op_resolver, tensor_arena, kTensorArenaSize);
 #elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO)
-  static tflite::RecordingMicroInterpreter static_interpreter(
+  static tflite::RecordingMicroInterpreter static_interpreter(model, micro_op_resolver, tensor_arena, kTensorArenaSize);
 #elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__UBI_MICRO)
-  static tflite::UbiMicroInterpreter static_interpreter(
+  static tflite::UbiMicroInterpreter static_interpreter(model, micro_op_resolver, tensor_arena, kTensorArenaSize);
 #elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO)
-  static tflite::RecordingUbiMicroInterpreter static_interpreter(
+  static tflite::RecordingUbiMicroInterpreter static_interpreter(model, micro_op_resolver, tensor_arena, kTensorArenaSize);
+#elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__UBI_HEAP_MICRO)
+  static tflite::UbiHeapBufferAllocator static_buffer_allocator;
+  static tflite::UbiHeapMicroAllocator static_allocator(&static_buffer_allocator);
+  static tflite::UbiHeapMicroInterpreter static_interpreter(model, micro_op_resolver, &static_allocator);
+#elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)
+  static tflite::UbiHeapBufferAllocator static_buffer_allocator;
+  static tflite::RecordingUbiHeapMicroAllocator static_allocator(&static_buffer_allocator);
+  static tflite::RecordingUbiHeapMicroInterpreter static_interpreter(model, micro_op_resolver, &static_allocator);
 #else
 #error "Unsupported TFLITE_MICRO__INTERPRETER_TYPE"
 #endif
-      model, micro_op_resolver, tensor_arena, kTensorArenaSize);
+      
   interpreter = &static_interpreter;
 
-#if ((TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO))
+#if (    (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)    )
   allocator = &(interpreter->GetMicroAllocator());
 
   MicroPrintf("After create interpreter");
@@ -140,7 +163,9 @@ void setup() {
     return;
   }
 
-#if ((TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO))
+#if (    (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)    )
   MicroPrintf("After allocate tensors");
   allocator->PrintAllocations();
 #endif
@@ -162,7 +187,9 @@ void loop() {
     MicroPrintf("Invoke failed.");
   }
 
-#if ((TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO))
+#if (    (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)    )
   if (inference_count_static <= 0)
   {
     MicroPrintf("After invoke (%d)", inference_count_static);
@@ -177,7 +204,9 @@ void loop() {
   int8_t no_person_score = output->data.uint8[kNotAPersonIndex];
   RespondToDetection(person_score, no_person_score);
 
-#if ((TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO))
+#if (    (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)    )
   inference_count_static += 1;
 #endif
 }
