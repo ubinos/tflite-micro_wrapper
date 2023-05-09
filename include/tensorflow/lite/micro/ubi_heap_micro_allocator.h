@@ -45,6 +45,7 @@ namespace tflite {
     private:
         GreedyMemoryPlanner default_memory_planner_;
 
+    protected:
         const UbiHeapBufferAllocator* heap_memory_allocator_;
     };
 }
