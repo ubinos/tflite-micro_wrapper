@@ -62,7 +62,7 @@ TF_LITE_MICRO_TEST(TestInterpreter) {
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
-  tflite::UbiHeapBufferAllocator simple_allocator;
+  tflite::RecordingUbiHeapBufferAllocator simple_allocator;
   tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
   tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
 
@@ -110,7 +110,7 @@ TF_LITE_MICRO_TEST(TestInterpreter) {
 TF_LITE_MICRO_TEST(TestMultiTenantInterpreter) {
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
-  tflite::UbiHeapBufferAllocator simple_allocator;
+  tflite::RecordingUbiHeapBufferAllocator simple_allocator;
   tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
 
   size_t simple_model_head_usage = 0, complex_model_head_usage = 0;
@@ -200,7 +200,7 @@ TF_LITE_MICRO_TEST(TestKernelMemoryPlanning) {
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
-  tflite::UbiHeapBufferAllocator simple_allocator;
+  tflite::RecordingUbiHeapBufferAllocator simple_allocator;
   tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
   tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
 
@@ -248,7 +248,7 @@ TF_LITE_MICRO_TEST(TestIncompleteInitialization) {
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
-  tflite::UbiHeapBufferAllocator simple_allocator;
+  tflite::RecordingUbiHeapBufferAllocator simple_allocator;
   tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
   tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
 
@@ -263,7 +263,7 @@ TF_LITE_MICRO_TEST(InterpreterWithProfilerShouldProfileOps) {
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
-  tflite::UbiHeapBufferAllocator simple_allocator;
+  tflite::RecordingUbiHeapBufferAllocator simple_allocator;
   tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
   tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
 
@@ -304,7 +304,7 @@ TF_LITE_MICRO_TEST(TestIncompleteInitializationAllocationsWithSmallArena) {
   // is not ideal to expose definitions for test only.
   constexpr size_t max_scratch_buffer_request_size = 192;
 
-  tflite::UbiHeapBufferAllocator simple_allocator;
+  tflite::RecordingUbiHeapBufferAllocator simple_allocator;
   tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
   tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
 
@@ -351,7 +351,7 @@ TF_LITE_MICRO_TEST(TestInterpreterDoesNotAllocateUntilInvoke) {
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
-  tflite::UbiHeapBufferAllocator simple_allocator;
+  tflite::RecordingUbiHeapBufferAllocator simple_allocator;
   tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
   tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
 
@@ -412,7 +412,7 @@ TF_LITE_MICRO_TEST(TestInterpreterMultipleInputs) {
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
-  tflite::UbiHeapBufferAllocator simple_allocator;
+  tflite::RecordingUbiHeapBufferAllocator simple_allocator;
   tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
   tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
 
@@ -475,7 +475,7 @@ TF_LITE_MICRO_TEST(TestInterpreterNullInputsAndOutputs) {
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
-  tflite::UbiHeapBufferAllocator simple_allocator;
+  tflite::RecordingUbiHeapBufferAllocator simple_allocator;
   tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
   tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
 
@@ -495,7 +495,7 @@ TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
   const tflite::Model* model = tflite::testing::GetModelWith256x256Tensor();
   TF_LITE_MICRO_EXPECT(nullptr != model);
 
-  tflite::UbiHeapBufferAllocator simple_allocator;
+  tflite::RecordingUbiHeapBufferAllocator simple_allocator;
   tflite::RecordingUbiHeapMicroAllocator heap_allocator(&simple_allocator);
   tflite::RecordingUbiHeapMicroAllocator* allocator = &heap_allocator;
 

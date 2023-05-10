@@ -218,6 +218,8 @@ namespace tflite {
         virtual uint8_t* AllocatePersistentBuffer(size_t size, size_t alignment) override;
 
         virtual TfLiteStatus DeallocatePersistentBuffer(uint8_t* buf);
+
+        virtual TfLiteStatus SetNonPersistentMemoryPower(bool on);
     };
 }
 

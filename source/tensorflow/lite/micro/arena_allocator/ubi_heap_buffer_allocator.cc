@@ -458,6 +458,29 @@ TfLiteStatus tflite::UbiHeapBufferAllocator::DeallocatePersistentBuffer(uint8_t*
   return status;
 }
 
+TfLiteStatus tflite::UbiHeapBufferAllocator::SetNonPersistentMemoryPower(bool on) {
+  int r;
+  TfLiteStatus status;
+
+  status = kTfLiteError;
+  do
+  {
+    if (on) {
+      r = heap_power_on(NULL, TFL_HEAP_DIR_NONPERSISTENT);
+    }
+    else {
+      r = heap_power_off(NULL, TFL_HEAP_DIR_NONPERSISTENT);
+    }
+    if (r != 1) {
+      break;
+    }
+
+    status = kTfLiteOk;
+    break;
+  } while (1);
+
+  return status;
+}
 
 }  // namespace tflite
 
