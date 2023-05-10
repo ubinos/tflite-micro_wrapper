@@ -45,7 +45,7 @@ static void tflite_func(void * arg)
     {
         loop();
 #if defined(UBINOS_PRESENT)
-        task_sleepms(5);
+        task_sleepms(1000);
 #endif /* defined(UBINOS_PRESENT) */
     }
 }
