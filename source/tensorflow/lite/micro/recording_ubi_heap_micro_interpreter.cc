@@ -8,7 +8,7 @@ tflite::RecordingUbiHeapMicroInterpreter::RecordingUbiHeapMicroInterpreter(const
 {
 }
 
-const RecordingUbiHeapMicroAllocator& tflite::RecordingUbiHeapMicroInterpreter::GetMicroAllocator() const
+RecordingUbiHeapMicroAllocator& tflite::RecordingUbiHeapMicroInterpreter::GetMicroAllocator() const
 {
     // TODO - implement RecordingUbiHeapMicroInterpreter.GetMicroAllocator
     return recording_ubi_heap_micro_allocator_;

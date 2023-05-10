@@ -30,6 +30,8 @@ namespace tflite {
 
         static UbiHeapMicroAllocator* Create(UbiHeapBufferAllocator* memory_allocator);
 
+        virtual TfLiteStatus SetNonPersistentMemoryPower(bool on);
+
         /**
          * Returns the fixed amount of memory overhead of UbiMicroAllocator.
          */
@@ -45,7 +47,7 @@ namespace tflite {
     private:
         GreedyMemoryPlanner default_memory_planner_;
 
-        const UbiHeapBufferAllocator* heap_memory_allocator_;
+        UbiHeapBufferAllocator* heap_memory_allocator_;
     };
 }
 

@@ -15,6 +15,11 @@ limitations under the License.
 
 #include <ubinos_config.h>
 
+#if defined(UBINOS_PRESENT)
+#include <ubinos.h>
+#include <ubinos/ubiclib/heap.h>
+#endif /* defined(UBINOS_PRESENT) */
+
 #include "main_functions.h"
 
 #include "detection_responder.h"
@@ -81,12 +86,15 @@ alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
 const tflite::RecordingMicroAllocator* allocator = nullptr;
 #elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO)
 const tflite::RecordingUbiMicroAllocator* allocator = nullptr;
+#elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__UBI_HEAP_MICRO)
+tflite::UbiHeapMicroAllocator* allocator = nullptr;
 #elif (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)
-const tflite::RecordingUbiHeapMicroAllocator* allocator = nullptr;
+tflite::RecordingUbiHeapMicroAllocator* allocator = nullptr;
 #endif
 
 #if (    (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) \
       || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__UBI_HEAP_MICRO) \
       || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)    )
 int inference_count_static = 0;
 #endif
@@ -149,9 +157,13 @@ void setup() {
 
 #if (    (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) \
       || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__UBI_HEAP_MICRO) \
       || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)    )
   allocator = &(interpreter->GetMicroAllocator());
-
+#endif
+#if (    (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)    )
   MicroPrintf("After create interpreter");
   allocator->PrintAllocations();
 #endif
@@ -176,6 +188,23 @@ void setup() {
 
 // The name of this function is important for Arduino compatibility.
 void loop() {
+#if (    (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__UBI_HEAP_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)    )
+  allocator->SetNonPersistentMemoryPower(true);
+#endif
+
+#if (    (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__UBI_HEAP_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)    )
+#if defined(UBINOS_PRESENT)
+  if (inference_count_static <= 0)
+  {
+    heap_printheapinfo(NULL);
+  }
+#endif /* defined(UBINOS_PRESENT) */
+#endif
+
   // Get image from provider.
   if (kTfLiteOk !=
       GetImage(kNumCols, kNumRows, kNumChannels, input->data.int8)) {
@@ -204,9 +233,22 @@ void loop() {
   int8_t no_person_score = output->data.uint8[kNotAPersonIndex];
   RespondToDetection(person_score, no_person_score);
 
+#if (    (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__UBI_HEAP_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)    )
+  allocator->SetNonPersistentMemoryPower(false);
+#endif
+
 #if (    (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_MICRO) \
       || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_MICRO) \
+      || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__UBI_HEAP_MICRO) \
       || (TFLITE_MICRO__INTERPRETER_TYPE == TFLITE_MICRO__INTERPRETER_TYPE__RECORDING_UBI_HEAP_MICRO)    )
+#if defined(UBINOS_PRESENT)
+  if (inference_count_static <= 0)
+  {
+    heap_printheapinfo(NULL);
+  }
+#endif /* defined(UBINOS_PRESENT) */
+
   inference_count_static += 1;
 #endif
 }

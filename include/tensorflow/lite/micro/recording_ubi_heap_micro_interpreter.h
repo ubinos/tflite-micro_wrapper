@@ -8,15 +8,15 @@
 namespace tflite {
     class RecordingUbiHeapMicroInterpreter : public tflite::UbiHeapMicroInterpreter {
 
+    private:
+        RecordingUbiHeapMicroAllocator& recording_ubi_heap_micro_allocator_;
+
     public:
         RecordingUbiHeapMicroInterpreter(const Model* model, const MicroOpResolver& op_resolver, tflite::RecordingUbiHeapMicroAllocator* allocator, MicroResourceVariables* resource_variables = nullptr, MicroProfilerInterface* profiler = nullptr);
 
         TF_LITE_REMOVE_VIRTUAL_DELETE
 
-        const RecordingUbiHeapMicroAllocator& GetMicroAllocator() const;
-
-    private:
-        const RecordingUbiHeapMicroAllocator& recording_ubi_heap_micro_allocator_;
+        RecordingUbiHeapMicroAllocator& GetMicroAllocator() const;
     };
 }
 

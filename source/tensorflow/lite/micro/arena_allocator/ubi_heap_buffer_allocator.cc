@@ -217,7 +217,7 @@ uint8_t* tflite::UbiHeapBufferAllocator::AllocateTemp(size_t size, size_t alignm
     if (result == nullptr) {
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
       MicroPrintf(
-          "Failed to allocate persistent memory (allocation fail). Requested: %u, %u",
+          "Failed to allocate temp memory (allocation fail). Requested: %u, %u",
           size, alignment);
 #endif
       break;
@@ -226,9 +226,9 @@ uint8_t* tflite::UbiHeapBufferAllocator::AllocateTemp(size_t size, size_t alignm
     if (result != AlignPointerDown(result, alignment)) {
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
       MicroPrintf(
-          "Failed to allocate persistent memory (alignment fail). Requested: %u, %u",
+          "Failed to allocate temp memory (alignment fail). Requested: %u, %u",
           size, alignment);
-  #endif
+#endif
       r = heap_free(NULL, result);
       ubi_assert(r == 0);
       result = nullptr;

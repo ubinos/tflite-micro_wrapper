@@ -55,6 +55,10 @@ UbiHeapMicroAllocator* tflite::UbiHeapMicroAllocator::Create(UbiHeapBufferAlloca
   return new UbiHeapMicroAllocator(memory_allocator);
 }
 
+TfLiteStatus tflite::UbiHeapMicroAllocator::SetNonPersistentMemoryPower(bool on) {
+  return heap_memory_allocator_->SetNonPersistentMemoryPower(on);
+}
+
 size_t tflite::UbiHeapMicroAllocator::GetDefaultTailUsage(bool is_memory_planner_given) {
   // MicroBuiltinDataAllocator + SubgraphAllocations
   return heap_get_block_allocated_size_min(NULL) * 2;

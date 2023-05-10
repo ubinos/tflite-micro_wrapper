@@ -8,7 +8,7 @@ tflite::UbiHeapMicroInterpreter::UbiHeapMicroInterpreter(const Model* model, con
 {
 }
 
-const UbiHeapMicroAllocator& tflite::UbiHeapMicroInterpreter::GetMicroAllocator() const {
+UbiHeapMicroAllocator& tflite::UbiHeapMicroInterpreter::GetMicroAllocator() const {
     return ubi_heap_micro_allocator_;
 }
 

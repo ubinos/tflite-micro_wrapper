@@ -9,14 +9,14 @@ namespace tflite {
     class UbiHeapMicroInterpreter : public MicroInterpreter {
 
     private:
-        const UbiHeapMicroAllocator& ubi_heap_micro_allocator_;
+        UbiHeapMicroAllocator& ubi_heap_micro_allocator_;
 
     public:
         UbiHeapMicroInterpreter(const Model* model, const MicroOpResolver& op_resolver, UbiHeapMicroAllocator* allocator, MicroResourceVariables* resource_variables = nullptr, MicroProfilerInterface* profiler = nullptr);
 
         TF_LITE_REMOVE_VIRTUAL_DELETE
 
-        const UbiHeapMicroAllocator& GetMicroAllocator() const;
+        UbiHeapMicroAllocator& GetMicroAllocator() const;
     };
 }
 

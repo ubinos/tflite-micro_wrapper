@@ -6,7 +6,7 @@
 
 # ubinos_config_info {"name_base": "tflite_person_detection", "build_type": "cmake_ubinos", "app": true}
 
-set_cache(UBINOS__BSP__LINKSCRIPT_FILE "${PROJECT_UBINOS_DIR}/source/ubinos/bsp/arch/arm/cortexm/nrf52/xxaa/flash_bdh.ld" PATH)
+set_cache(UBINOS__BSP__LINKSCRIPT_FILE "${PROJECT_UBINOS_DIR}/source/ubinos/bsp/arch/arm/cortexm/nrf52/xxaa/flash_bdh_align16.ld" PATH)
 
 set_cache(UBINOS__UBICLIB__EXCLUDE_HEAP_FLAG FALSE BOOL)
 
@@ -43,7 +43,7 @@ set_cache(UBINOS__UBICLIB__HEAP_DIR1_FBLBM_BUFSIZE 4 STRING)
 set_cache(UBINOS__UBICLIB__HEAP_DEFAULT_DIR 1 STRING)
 set_cache(UBINOS__UBICLIB__HEAP_ALIGNMENT 16 STRING)
 
-# set_cache(NRF5SDK__DTTY_NRF_UART_WRITE_BUFFER_SIZE "1024 * 20" STRING)
+set_cache(NRF5SDK__DTTY_NRF_UART_WRITE_BUFFER_SIZE "1024 * 20" STRING)
 
 set_cache(TFLITE_MICRO__INTERPRETER_TYPE "UBI_HEAP_MICRO" STRING)
 
